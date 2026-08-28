@@ -1,5 +1,6 @@
 # OpenAI’s Chat Completions API 
 # Demostrating that LLMs are stateless
+# Each call to client.chat.completions.create() API is independent and has no memory of previous calls
 
 import os
 from openai import OpenAI
@@ -21,8 +22,10 @@ response = client.chat.completions.create(
     ]
 )
 
+
+clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
 print("Interaction #1, context provided")
-print(response.choices[0].message.content)
+print(clean_response)
 
 response = client.chat.completions.create(
     model=MODEL_NAME,
@@ -32,6 +35,7 @@ response = client.chat.completions.create(
     ]
 )
 
+clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
 print("Interaction #2, is there context (state) still there?")
-print(response.choices[0].message.content)
+print(clean_response)
 print()
