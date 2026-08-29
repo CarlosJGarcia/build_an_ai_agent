@@ -21,49 +21,24 @@ MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
 
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
 
-response = client.chat.completions.create(
+
+# En lugar de client.chat.completions.create() ahora uso client.beta.chat.completions.parse()
+# OpenAI's GPT-4 has been heavily fine-tuned to recognize the structured output request and completely suppress their conversational instincts.
+# Qwen, open-source running locally often needs an explicit reminder to just output JSON
+# I need to add a system message to explicitly instruct the model to act as a strict data parser and suppress all conversation
+response = client.beta.chat.completions.parse(
     model=MODEL_NAME,
-    messages=[{
-        "role": "user", 
-        "content": "My name is John Smith, my email is john@example.com, and my phone is 555-1234."
-    }],
+    messages=[
+        {"role": "system", "content": "You are a data extraction assistant. You must output ONLY valid JSON that matches the requested schema. Do not include any greetings, conversational text, or markdown blocks."},
+        {"role": "user", "content": "My name is John Smith, my email is john@example.com, and my phone is 555-1234."}],
     response_format=ExtractedInfo
 )
-clean_response = response.choices[0].message.content.strip()                      # Remove trailing \n in the LLM response
+
+# En lugar de message.content, recogemos el resultado de message.parsed
+clean_response = response.choices[0].message.parsed
 
 print()
 print(clean_response)
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
 print()
 
-"""
-
-result = response.choices[0].message.content
-
-# Initialize the message history with the system prompt. This indicates the conversational, instruction-tuned LLM, how it should answer
-messages = [{"role": "system", "content": "You are a helpful assistant."}]
-
-# Interaction #1
-messages.append({"role": "user", "content": "My name is Carlos"})                 # Context provided by the user
-response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
-clean_response = response.choices[0].message.content.strip()                      # Remove trailing \n in the LLM response
-messages.append({"role": "assistant", "content": clean_response})                 # Add the reply to the list. Use the role (dictionary key) "assistant"
-
-print()
-print("Interaction #1, context provided")
-print(clean_response)
-print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
-print()
-
-
-# Interaction #2
-messages.append({"role": "user", "content": "What is my name?"})                  # The specific question to be answered
-response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
-clean_response = response.choices[0].message.content.strip()                      # Remove trailing \n in the LLM response
-messages.append({"role": "assistant", "content": clean_response})                 # Add the reply to the list. Use the role (dictionary key) "assistant"
-
-print("Interaction #2, is there context (state) still there? Yes, because I pass all my previous user propmts together every time")
-print(clean_response)
-print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
-print()
-"""
