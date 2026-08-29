@@ -1,7 +1,12 @@
-import sys
+import sys, platform
 # import torch
 
+
+os_info = platform.freedesktop_os_release()
+ubuntu_version = os_info.get("PRETTY_NAME", "Linux")
+
 print()
+print(f"OS: {ubuntu_version}")
 print(f"Python version: {sys.version_info.major}.{sys.version_info.minor}")
 # print("PyTorch version:", torch.__version__)
 # print("Apple Silicon acceleration:", torch.backends.mps.is_available())
