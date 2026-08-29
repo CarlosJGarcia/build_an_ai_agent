@@ -8,6 +8,10 @@ import os
 from openai import OpenAI
 from pydantic import BaseModel
 
+class ExtractedInfo(BaseModel):      # Define data structure named ExtractedInfo using pydantic model
+    name: str                        # Required string
+    email: str                       # Required string
+    phone: str | None = None         # Optonal string (it can be either a string or nothing, by default it's nothing) 
 
 vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
 if not vllm_server_fqdn:
@@ -16,6 +20,25 @@ vllm_url = f"http://{vllm_server_fqdn}:8000/v1"
 MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
 
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
+
+response = client.chat.completions.create(
+    model=MODEL_NAME,
+    messages=[{
+        "role": "user", 
+        "content": "My name is John Smith, my email is john@example.com, and my phone is 555-1234."
+    }],
+    response_format=ExtractedInfo
+)
+clean_response = response.choices[0].message.content.strip()                      # Remove trailing \n in the LLM response
+
+print()
+print(clean_response)
+print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
+print()
+
+"""
+
+result = response.choices[0].message.content
 
 # Initialize the message history with the system prompt. This indicates the conversational, instruction-tuned LLM, how it should answer
 messages = [{"role": "system", "content": "You are a helpful assistant."}]
@@ -43,3 +66,4 @@ print("Interaction #2, is there context (state) still there? Yes, because I pass
 print(clean_response)
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
 print()
+"""
