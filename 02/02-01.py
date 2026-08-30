@@ -1,4 +1,5 @@
 # OpenAI’s Chat Completions API 
+# This API endpoint generates a model response from a list of messages comprising a conversation
 
 import os
 from openai import OpenAI
@@ -13,6 +14,7 @@ MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
 
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
 
+# List of dictionaries. Should be named 'messages' for alignment with the examples in OpenAI's SDK specification 
 prompts = [
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "What is the capital of France?"}
