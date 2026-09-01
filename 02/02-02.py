@@ -4,7 +4,9 @@
 
 import os
 from openai import OpenAI
+from rich.console import Console
 
+console = Console()
 vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
 if not vllm_server_fqdn:
     raise ValueError("ERROR: VLLM_SERVER_FQDN environment variable is not set.")
@@ -13,29 +15,29 @@ MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
 
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
 
-response = client.chat.completions.create(
-    model=MODEL_NAME,
-    messages=[
+# List of dictionaries
+messages=[
         {"role": "system", "content": "You are a helpful assistant."},   # How the conversational, instruction-tuned LLM should answer
         {"role": "user", "content": "My name is Carlos"},                # Context provided by the user
         {"role": "user", "content": "What is my name?"}                  # The specific question to be answered
     ]
-)
-
-
+response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
 clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
-print("Interaction #1, context provided")
+print("\nInteraction #1, context provided")
+for item in messages:
+    console.print(f"{item}", style="white", highlight=False)
 print(clean_response)
 
-response = client.chat.completions.create(
-    model=MODEL_NAME,
-    messages=[
+# List of dictionaries
+messages=[
         {"role": "system", "content": "You are a helpful assistant."},   # How the conversational, instruction-tuned LLM should answer
         {"role": "user", "content": "What is my name?"}                  # The specific question to be answered
     ]
-)
 
+response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
 clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
-print("Interaction #2, is there context (state) still there?")
+print("\nInteraction #2, is there context (state) still there?")
+for item in messages:
+    console.print(f"{item}", style="white", highlight=False)
 print(clean_response)
 print()
