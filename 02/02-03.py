@@ -17,29 +17,43 @@ MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
 
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
 
-# Initialize the message history with the system prompt. This indicates the conversational, instruction-tuned LLM, how it should answer
-messages = [{"role": "system", "content": "You are a helpful assistant."}]
 
 # Interaction #1
-messages.append({"role": "user", "content": "My name is Carlos"})                 # Context provided by the user
-response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
-clean_response = response.choices[0].message.content.strip()                      # Remove trailing \n in the LLM response
-messages.append({"role": "assistant", "content": clean_response})                 # Add the reply to the list. Use the role (dictionary key) "assistant"
-
 print()
 console.print("Interaction #1, context provided", style="gold1", highlight=False)
+
+messages = [{"role": "system", "content": "You are a helpful assistant."}]        # Initialize the message history with the system prompt. This indicates the conversational, instruction-tuned LLM, how it should answer 
+messages.append({"role": "user", "content": "My name is Carlos"})                 # Context provided by the user
+for item in messages:
+    console.print(f"{item}", style="white", highlight=False)
+
+response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
+clean_response = response.choices[0].message.content.strip()                      # Remove trailing \n in the LLM response
+
+messages.append({"role": "assistant", "content": clean_response})                 # Add the reply to the list. Use the role (dictionary key) "assistant"
 print(clean_response)
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
+
+for item in messages:
+    console.print(f"{item}", style="white", highlight=False)
+
 print()
 
 
 # Interaction #2
+console.print("Interaction #2, is there context (state) still there? Yes, because I pass all my previous user propmts together every time", style="gold1", highlight=False)
 messages.append({"role": "user", "content": "What is my name?"})                  # The specific question to be answered
+for item in messages:
+    console.print(f"{item}", style="white", highlight=False)
+
 response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
 clean_response = response.choices[0].message.content.strip()                      # Remove trailing \n in the LLM response
 messages.append({"role": "assistant", "content": clean_response})                 # Add the reply to the list. Use the role (dictionary key) "assistant"
 
-console.print("Interaction #2, is there context (state) still there? Yes, because I pass all my previous user propmts together every time", style="gold1", highlight=False)
 print(clean_response)
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
+
+for item in messages:
+    console.print(f"{item}", style="white", highlight=False)
+
 print()
