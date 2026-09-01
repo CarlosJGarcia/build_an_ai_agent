@@ -6,7 +6,9 @@
 
 import os
 from openai import OpenAI
+from rich.console import Console
 
+console = Console()
 vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
 if not vllm_server_fqdn:
     raise ValueError("ERROR: VLLM_SERVER_FQDN environment variable is not set.")
@@ -25,7 +27,7 @@ clean_response = response.choices[0].message.content.strip()                    
 messages.append({"role": "assistant", "content": clean_response})                 # Add the reply to the list. Use the role (dictionary key) "assistant"
 
 print()
-print("Interaction #1, context provided")
+console.print("Interaction #1, context provided", style="gold1", highlight=False)
 print(clean_response)
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
 print()
@@ -37,7 +39,7 @@ response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
 clean_response = response.choices[0].message.content.strip()                      # Remove trailing \n in the LLM response
 messages.append({"role": "assistant", "content": clean_response})                 # Add the reply to the list. Use the role (dictionary key) "assistant"
 
-print("Interaction #2, is there context (state) still there? Yes, because I pass all my previous user propmts together every time")
+console.print("Interaction #2, is there context (state) still there? Yes, because I pass all my previous user propmts together every time", style="gold1", highlight=False)
 print(clean_response)
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
 print()
