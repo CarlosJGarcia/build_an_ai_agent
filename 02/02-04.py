@@ -7,6 +7,7 @@
 import os, re, json
 from openai import OpenAI
 from pydantic import BaseModel
+from rich.console import Console
 
 # Define data structure (named ExtractedInfo) using pydantic 
 class ExtractedInfo(BaseModel):      
@@ -21,7 +22,8 @@ schema_template = {
     "phone": "string (optional)"
 }
 schema_string = json.dumps(schema_template)
-print("\nJSON schema_string:", schema_string)
+console = Console()
+console.print(f"\nJSON schema_string: {schema_string}", style="gold1", highlight=False)
 
 vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
 if not vllm_server_fqdn:
@@ -32,14 +34,14 @@ MODEL_TEMPERATURE = 0.0
 
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
 
-response = client.chat.completions.create(
-    model=MODEL_NAME,
-    messages=[
+messages = [
         {"role": "system", "content": f"You are a data extraction assistant. Output ONLY a valid JSON object matching this schema: {schema_string}. Do not include markdown blocks or schema keywords like 'properties' in your final output."},
         {"role": "user", "content": "My name is John Smith, my email is john@example.com, and my phone is 555-1234."}
-    ],
-    temperature=MODEL_TEMPERATURE
-)
+    ]
+for item in messages:
+    console.print(f"{item}", style="white", highlight=False)
+
+response = client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)
 
 # Get the raw text string
 clean_response = response.choices[0].message.content.strip()  
