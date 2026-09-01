@@ -23,7 +23,7 @@ messages=[
     ]
 response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
 clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
-print("\nInteraction #1, context provided")
+console.print("\nInteraction #1, context provided", style="gold1", highlight=False)
 for item in messages:
     console.print(f"{item}", style="white", highlight=False)
 print(clean_response)
@@ -36,7 +36,7 @@ messages=[
 
 response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
 clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
-print("\nInteraction #2, is there context (state) still there?")
+console.print("\nInteraction #2, is there context (state) still there?", style="gold1", highlight=False)
 for item in messages:
     console.print(f"{item}", style="white", highlight=False)
 print(clean_response)
