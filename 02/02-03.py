@@ -1,8 +1,9 @@
 # OpenAI’s Chat Completions API 
 # Managing conversation history
-# Demonstrating how to maintain state by passing previous history
+# Demonstrate how to maintain state by passing previous history
 # By maintaining a 'messages' list and appending the LLM's replies to it after each interaction, we pass the entire conversation history back to the model with every new request, giving it the "memory" it needs.
-# User messages are added with the user role (dictionary key) and model responses are added with the assistant role (dictionary key)
+# User messages are added with the user role (dictionary key)
+# Model responses are added with the assistant role (dictionary key)
 
 import os
 from openai import OpenAI
