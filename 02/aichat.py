@@ -14,10 +14,10 @@ client = OpenAI(base_url=vllm_url, api_key="EMPTY")
 
 # Initialize conversation 'message' history with system prompt. This indicates the conversational, instruction-tuned LLM, how it should answer 
 messages = [
-    {"role": "system", "content": "You are a helpful assistant."}
+    {"role": "system", "content": "You are a helpful assistant. Output plain text only. Do not use emojis, emoticons, or special unicode symbols under any circumstances."}
 ]
 
-console.print("\nAI Chat Terminal Started", style="gold1")
+console.print("\nAI Chat terminal started", style="gold1")
 console.print("Type your message and press Enter. Enter 'quit' to exit.\n", style="gold1", highlight=False)
 
 active = True
@@ -28,7 +28,7 @@ while active:
 
     # Check for quit command
     if user_input.strip().lower() == 'quit':
-        console.print("\nEnd of conversation. Goodbye!\n", style="gold1"))
+        console.print("End of conversation. Goodbye!\n", style="gold1")
         active = False
         continue
 
@@ -48,7 +48,7 @@ while active:
         messages.append({"role": "assistant", "content": clean_response})
 
         # 4. Display output and token usage
-        print(f"\nAI: {clean_response}\n")
+        print(f"AI: {clean_response}\n")
         
         usage = response.usage
         console.print(
