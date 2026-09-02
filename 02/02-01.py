@@ -1,5 +1,5 @@
 # OpenAI’s Chat Completions API 
-# This API endpoint generates a model response from a list of messages comprising a conversation
+# This API endpoint generates the response of a model from a list of messages comprising a conversation
 
 import os
 from openai import OpenAI
