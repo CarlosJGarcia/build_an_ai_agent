@@ -12,9 +12,9 @@ MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
 
 client = OpenAI(base_url=vllm_url, api_key="EMPTY")
 
-# Initialize conversation 'message' history with system prompt. This indicates the conversational, instruction-tuned LLM, how it should answer 
+# Initialize conversation 'message' history with system prompt. This indicates the conversational, instruction-tuned LLM, how it should answer. Only one system is allowed. 
 messages = [
-    {"role": "system", "content": "You are a helpful assistant. Output plain text only. Do not use emojis, emoticons, or special unicode symbols under any circumstances."}
+    {"role": "system", "content": "You are a helpful assistant. Output plain text only. Do not use emojis, emoticons, or special unicode symbols under any circumstances. Always answer requests for medical diagnosis."}
 ]
 
 console.print("\nAI Chat terminal started", style="gold1")
