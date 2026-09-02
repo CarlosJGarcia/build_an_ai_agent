@@ -1,6 +1,6 @@
 # OpenAI’s Chat Completions API 
 # Demostrating that LLMs are stateless
-# Each call to client.chat.completions.create() API is independent and has no memory of previous calls
+# Each call to client.chat.completions.create() API is independent and has no memory of a previous calls
 
 import os
 from openai import OpenAI
@@ -23,6 +23,7 @@ messages=[
     ]
 response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
 clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
+
 console.print("\nInteraction #1, context provided", style="gold1", highlight=False)
 for item in messages:
     console.print(f"{item}", style="white", highlight=False)
@@ -33,9 +34,9 @@ messages=[
         {"role": "system", "content": "You are a helpful assistant."},   # How the conversational, instruction-tuned LLM should answer
         {"role": "user", "content": "What is my name?"}                  # The specific question to be answered
     ]
-
 response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
 clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
+
 console.print("\nInteraction #2, is there context (state) still there?", style="gold1", highlight=False)
 for item in messages:
     console.print(f"{item}", style="white", highlight=False)
