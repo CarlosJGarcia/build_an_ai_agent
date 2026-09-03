@@ -15,7 +15,7 @@ class ExtractedInfo(BaseModel):
     email: str                       # Required string
     phone: str | None = None         # Optonal string (it can be either a string or nothing, by default it's nothing) 
 
-# Define the same data structure in JSON format, to be able to tell the LLM which format I expect to get
+# Define the same data, structure in JSON format, to be able to tell the LLM which format I expect to get
 schema_template = {
     "name": "string",
     "email": "string",
@@ -31,11 +31,14 @@ if not vllm_server_fqdn:
 vllm_url = f"http://{vllm_server_fqdn}:8000/v1"
 MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
 MODEL_TEMPERATURE = 0.0
+SYSTEM_PROMPT = "You are a helpful assistant. Output plain text only. Do not use emojis or emoticons. "
+SYSTEM_PROMPT += F"Output ONLY a valid JSON object matching this schema: {schema_string}. "
+SYSTEM_PROMPT += "Do not include markdown blocks or schema keywords like 'properties' in your final output."
 
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
 
 messages = [
-        {"role": "system", "content": f"You are a data extraction assistant. Output ONLY a valid JSON object matching this schema: {schema_string}. Do not include markdown blocks or schema keywords like 'properties' in your final output."},
+        {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": "My name is John Smith, my email is john@example.com, and my phone is 555-1234."}
     ]
 for item in messages:
