@@ -41,6 +41,7 @@ messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": "My name is John Smith, my email is john@example.com, and my phone is 555-1234."}
     ]
+console.print("Pregunta:", style="white", highlight=False)
 for item in messages:
     console.print(f"{item}", style="white", highlight=False)
 
@@ -65,7 +66,8 @@ if "properties" in dict_response:
 # Manually parse the clean JSON string into the Pydantic object
 final_response = ExtractedInfo.model_validate(dict_response)
 
-print(final_response)
+print(f"Response: {clean_response}")
+print(f"Response, extrated from JSON using Pydantic: {final_response}")
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
 print()
 
