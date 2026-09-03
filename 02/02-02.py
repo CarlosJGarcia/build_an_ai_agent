@@ -17,7 +17,7 @@ client = OpenAI(base_url=vllm_url, api_key="EMPTY")
 
 # List of dictionaries
 messages=[
-        {"role": "system", "content": "You are a helpful assistant."},   # How the conversational, instruction-tuned LLM should answer
+        {"role": "system", "content": "You are a helpful assistant. Output plain text only. Do not use emojis or emoticons.."},   # How the conversational, instruction-tuned LLM should answer
         {"role": "user", "content": "My name is Carlos"},                # Context provided by the user
         {"role": "user", "content": "What is my name?"}                  # The specific question to be answered
     ]
@@ -25,9 +25,10 @@ response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
 clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
 
 console.print("\nInteraction #1, context provided", style="gold1", highlight=False)
+console.print("Pregunta:", style="white", highlight=False)
 for item in messages:
     console.print(f"{item}", style="white", highlight=False)
-print(clean_response)
+print(f"Respuesta: {clean_response}")
 
 # List of dictionaries
 messages=[
@@ -38,7 +39,8 @@ response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
 clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
 
 console.print("\nInteraction #2, is there context (state) still there?", style="gold1", highlight=False)
+console.print("Pregunta:", style="white", highlight=False)
 for item in messages:
     console.print(f"{item}", style="white", highlight=False)
-print(clean_response)
+print(f"Respuesta: {clean_response}")
 print()
