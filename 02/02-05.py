@@ -1,9 +1,8 @@
 # OpenAI’s Chat Completions API 
 # Asynchronous LLM calls
 
+import os
 import asyncio
-#from litellm import acompletion
-#from openai import OpenAI
 from openai import AsyncOpenAI
 from rich.console import Console
 
@@ -22,12 +21,6 @@ SYSTEM_PROMPT = "You are a helpful assistant. Output plain text only. Do not use
 client = AsyncOpenAI(base_url=vllm_url, api_key="EMPTY") 
 
 
-
-"""
-async def get_response(prompt: str) -> str:
-    response = await acompletion(model="gpt-5-mini", messages=[{"role": "user", "content": prompt}])
-    return response.choices[0].message.content
-"""
 async def get_response(prompt: str) -> str:
 
     messages = [
@@ -35,10 +28,12 @@ async def get_response(prompt: str) -> str:
             {"role": "user", "content": prompt}
         ]
     response = await client.chat.completions.create(model=MODEL_NAME, messages=messages)
-    return response.choices[0].message.content
+    clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
+
+    return clean_response
 
 
-# Wrap the execution block in a main function
+# Wrap the execution block in a main function. This not needed in Jupyter Notebooks but required in .py for asyncio's "await" to work
 async def main():
 
     prompts = [
@@ -48,22 +43,12 @@ async def main():
     ]
 
     
-
-    """
     # Execute all requests concurrently
     tasks = [get_response(p) for p in prompts]
     results = await asyncio.gather(*tasks)
 
     for prompt, result in zip(prompts, results):
-        print(f"Q: {prompt}")
-        print(f"A: {result}\n")
-    """
-    # Execute all requests concurrently
-    tasks = [get_response(p) for p in prompts]
-    results = await asyncio.gather(*tasks)
-
-    for prompt, result in zip(prompts, results):
-        print(f"Q: {prompt}")
+        console.print(f"Q: {prompt}", style="white", highlight=False)
         print(f"A: {result}\n")
 
 
