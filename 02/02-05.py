@@ -17,7 +17,8 @@ MODEL_TEMPERATURE = 0.0
 SYSTEM_PROMPT = "You are a helpful assistant. Output plain text only. Do not use emojis or emoticons. "
 
 # Limit to 10 concurrent requests
-semaphore = asyncio.Semaphore(10)
+CONCURRENT = 10
+semaphore = asyncio.Semaphore(CONCURRENT)
 
 # Initialize the async client (it will automatically look for OPENAI_API_KEY in your environment)
 client = AsyncOpenAI(base_url=vllm_url, api_key="EMPTY") 
@@ -59,9 +60,9 @@ async def main():
         console.print(f"Q: {prompt}", style="white", highlight=False)
         print(f"A: {result}\n")
 
-    # Even with 100 concurrent tasks, only 10 API calls run at a time
+    # Now 100 concurrent tasks,with a concurrency limit of at a time
     prompts = [f"What is {i} + {i}?" for i in range(100)]
-    console.print(f"Asking {len(prompts)} simultaneous questions", style="gold1", highlight=False)
+    console.print(f"Asking {len(prompts)} simultaneous questions with a concurrence limit of {CONCURRENT} at a time", style="gold1", highlight=False)
     tasks = [call_llm(p) for p in prompts]
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
