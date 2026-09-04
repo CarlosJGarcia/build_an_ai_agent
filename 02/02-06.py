@@ -45,6 +45,32 @@ def is_correct(prediction: str | None, answer: str) -> bool:
     return prediction.strip().lower() == answer.strip().lower()
 
 
+
+async def evaluate_gaia_single(problem: dict, model: str) -> dict:
+    """Evaluate a single problem-model pair and return result."""
+    try:
+        output = await solve_problem(model, problem["Question"])
+        return {
+            "task_id": problem["task_id"],
+            "model": model,
+            "correct": is_correct(output.final_answer, problem["Final answer"]),
+            "is_solvable": output.is_solvable,
+            "prediction": output.final_answer,
+            "answer": problem["Final answer"],
+            "unsolvable_reason": output.unsolvable_reason,
+        }
+    except Exception as e:
+        return {
+            "task_id": problem["task_id"],
+            "model": model,
+            "correct": False,
+            "is_solvable": None,
+            "prediction": None,
+            "answer": problem["Final answer"],
+            "error": str(e),
+        }
+
+
 SYSTEM_PROMPT = "You are a general AI assistant. I will ask you a question. First, determine if you can solve this problem with your current capabilities "
 SYSTEM_PROMPT += "and set “is_solvable” accordingly. If you can solve it, set “is_solvable” to true and provide your answer in “final_answer”. "
 SYSTEM_PROMPT += "If you cannot solve it, set “is_solvable” to false and explain why in “unsolvable_reason”. Your final answer should be a number OR "
@@ -61,10 +87,29 @@ print(f"Number of Level 1 problems: {len(level1_problems)}")
 print()
 
 
+# Main
+async def run_experiment(
+    problems: list[dict],
+    models: list[str],
+) -> dict[str, list]:
+    """Evaluate all models on all problems."""
+    tasks = [
+        evaluate_gaia_single(problem, model)
+        for problem in problems
+        for model in models
+    ]
 
+    all_results = await tqdm_asyncio.gather(*tasks)
 
-print(SYSTEM_PROMPT)
-print()
+    # Group results by model
+    results = {model: [] for model in models}
+    for result in all_results:
+        results[result["model"]].append(result)
+
+    return results
+
+# print(SYSTEM_PROMPT)
+# print()
 
 
 
