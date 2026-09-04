@@ -10,6 +10,41 @@ class GaiaOutput(BaseModel):
     unsolvable_reason: str = ""
     final_answer: str = ""
 
+# Coroutine (function defined with async def) that sends a GAIA problem to the model and receives the structured reply
+async def solve_problem(model: str, question: str) -> GaiaOutput:
+    
+    provider = get_provider(model)
+
+    async with PROVIDER_SEMAPHORES[provider]:
+        response = await acompletion(
+            model=model,
+            messages=[
+                {"role": "system", "content": gaia_prompt},
+                {"role": "user", "content": question},
+            ],
+            response_format=GaiaOutput,
+            num_retries=2,
+        )
+        finish_reason = response.choices[0].finish_reason
+        content = response.choices[0].message.content
+
+        if finish_reason == "refusal" or content is None:
+            return GaiaOutput(
+                is_solvable=False,
+                unsolvable_reason=f"Model refused to answer (finish_reason: {finish_reason})",
+                final_answer=""
+            )
+        return GaiaOutput.model_validate_json(content)
+
+
+# Answer validation
+def is_correct(prediction: str | None, answer: str) -> bool:
+    """Check exact match between prediction and answer (case-insensitive)."""
+    if prediction is None:
+        return False
+    return prediction.strip().lower() == answer.strip().lower()
+
+
 SYSTEM_PROMPT = "You are a general AI assistant. I will ask you a question. First, determine if you can solve this problem with your current capabilities "
 SYSTEM_PROMPT += "and set “is_solvable” accordingly. If you can solve it, set “is_solvable” to true and provide your answer in “final_answer”. "
 SYSTEM_PROMPT += "If you cannot solve it, set “is_solvable” to false and explain why in “unsolvable_reason”. Your final answer should be a number OR "
@@ -24,6 +59,9 @@ console.print(f"\nLoading GAIA dataset", style="gold1", highlight=False)
 level1_problems = load_dataset("gaia-benchmark/GAIA", "2023_level1", split="validation")
 print(f"Number of Level 1 problems: {len(level1_problems)}")
 print()
+
+
+
 
 print(SYSTEM_PROMPT)
 print()
