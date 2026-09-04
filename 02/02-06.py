@@ -1,4 +1,5 @@
-# Load the GAIA (General AI Assistants) dataset from HuggingFace
+# Loads the GAIA (General AI Assistants) dataset from HuggingFace
+# Reinach 04/Sep/2026
 
 from pydantic import BaseModel
 from rich.console import Console
@@ -71,23 +72,6 @@ async def evaluate_gaia_single(problem: dict, model: str) -> dict:
         }
 
 
-SYSTEM_PROMPT = "You are a general AI assistant. I will ask you a question. First, determine if you can solve this problem with your current capabilities "
-SYSTEM_PROMPT += "and set “is_solvable” accordingly. If you can solve it, set “is_solvable” to true and provide your answer in “final_answer”. "
-SYSTEM_PROMPT += "If you cannot solve it, set “is_solvable” to false and explain why in “unsolvable_reason”. Your final answer should be a number OR "
-SYSTEM_PROMPT += "as few words as possible OR a comma-separated list of numbers and/or strings. If you are asked for a number, don’t use a comma to write "
-SYSTEM_PROMPT += "your number; also don’t use units such as $ or a percent sign unless specified otherwise. If you are asked for a string, don’t use articles, "
-SYSTEM_PROMPT += "neither abbreviations (e.g., for cities), and write the digits in plain text unless specified otherwise. If you are asked for a comma-separated "
-SYSTEM_PROMPT += "list, apply the above rules depending on whether the element is a number or a string."
-
-console = Console()
-console.print(f"\nLoading GAIA dataset", style="gold1", highlight=False)
-
-level1_problems = load_dataset("gaia-benchmark/GAIA", "2023_level1", split="validation")
-print(f"Number of Level 1 problems: {len(level1_problems)}")
-print()
-
-
-# Main
 async def run_experiment(
     problems: list[dict],
     models: list[str],
@@ -108,8 +92,37 @@ async def run_experiment(
 
     return results
 
-# print(SYSTEM_PROMPT)
-# print()
+
+# Main
+SYSTEM_PROMPT = "You are a general AI assistant. I will ask you a question. First, determine if you can solve this problem with your current capabilities "
+SYSTEM_PROMPT += "and set “is_solvable” accordingly. If you can solve it, set “is_solvable” to true and provide your answer in “final_answer”. "
+SYSTEM_PROMPT += "If you cannot solve it, set “is_solvable” to false and explain why in “unsolvable_reason”. Your final answer should be a number OR "
+SYSTEM_PROMPT += "as few words as possible OR a comma-separated list of numbers and/or strings. If you are asked for a number, don’t use a comma to write "
+SYSTEM_PROMPT += "your number; also don’t use units such as $ or a percent sign unless specified otherwise. If you are asked for a string, don’t use articles, "
+SYSTEM_PROMPT += "neither abbreviations (e.g., for cities), and write the digits in plain text unless specified otherwise. If you are asked for a comma-separated "
+SYSTEM_PROMPT += "list, apply the above rules depending on whether the element is a number or a string."
+
+DATASET_ID = "gaia-benchmark/GAIA"
+SUBSET = "2023_level1"
+
+console = Console()
+console.print(f"\nLoading GAIA dataset", style="gold1", highlight=False)
+
+level1_problems = load_dataset(DATASET_ID, SUBSET, split="validation")
+
+console.print(f"Dataset loaded successfully!\n", style="gold1")
+print(f"Number of Level 1 problems: {len(level1_problems)}")
+print(f"Dataset structure: {level1_problems}")
+
+# Inspecting the first item in the 'validation' split
+console.print(f"\nSample data:", style="gold1")
+sample = level1_problems[0] 
+for key, value in sample.items():
+    content_preview = str(value)[:200].replace('\n', ' ')
+    print(f"{key}: {content_preview}...")
+
+print()
+
 
 
 
