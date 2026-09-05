@@ -1,6 +1,7 @@
 # Loads the GAIA (General AI Assistants) dataset from HuggingFace
 # Reinach 04/Sep/2026
 
+import os, re, json
 from pydantic import BaseModel
 from rich.console import Console
 from datasets import load_dataset
@@ -10,6 +11,16 @@ class GaiaOutput(BaseModel):
     is_solvable: bool
     unsolvable_reason: str = ""
     final_answer: str = ""
+
+# Define the same data, structure in JSON format, to be able to tell the LLM which format I expect to get
+schema_template = {
+    "is_solvable": "string",
+    "unsolvable_reason": "string",
+    "final_answer": "string"
+}
+schema_string = json.dumps(schema_template)
+console = Console()
+console.print(f"\nJSON schema_string: {schema_string}", style="gold1", highlight=False)
 
 # Coroutine (function defined with async def) that sends a GAIA problem to the model and receives the structured reply
 async def solve_problem(model: str, question: str) -> GaiaOutput:
@@ -94,6 +105,14 @@ async def run_experiment(
 
 
 # Main
+
+vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
+if not vllm_server_fqdn:
+    raise ValueError("ERROR: VLLM_SERVER_FQDN environment variable is not set.")
+vllm_url = f"http://{vllm_server_fqdn}:8000/v1"
+MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
+MODEL_TEMPERATURE = 0.0
+
 SYSTEM_PROMPT = "You are a general AI assistant. I will ask you a question. First, determine if you can solve this problem with your current capabilities "
 SYSTEM_PROMPT += "and set “is_solvable” accordingly. If you can solve it, set “is_solvable” to true and provide your answer in “final_answer”. "
 SYSTEM_PROMPT += "If you cannot solve it, set “is_solvable” to false and explain why in “unsolvable_reason”. Your final answer should be a number OR "
@@ -101,6 +120,9 @@ SYSTEM_PROMPT += "as few words as possible OR a comma-separated list of numbers 
 SYSTEM_PROMPT += "your number; also don’t use units such as $ or a percent sign unless specified otherwise. If you are asked for a string, don’t use articles, "
 SYSTEM_PROMPT += "neither abbreviations (e.g., for cities), and write the digits in plain text unless specified otherwise. If you are asked for a comma-separated "
 SYSTEM_PROMPT += "list, apply the above rules depending on whether the element is a number or a string."
+SYSTEM_PROMPT += "Output plain text only. Do not use emojis or emoticons. "
+SYSTEM_PROMPT += F"Output ONLY a valid JSON object matching this schema: {schema_string}. "
+SYSTEM_PROMPT += "Do not include markdown blocks or schema keywords like 'properties' in your final output."
 
 DATASET_ID = "gaia-benchmark/GAIA"
 SUBSET = "2023_level1"
