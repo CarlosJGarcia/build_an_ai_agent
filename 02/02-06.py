@@ -1,4 +1,6 @@
 # Loads the GAIA (General AI Assistants) dataset from HuggingFace
+# 'Convinces' the LLM to reply using data structures (JSON)
+# OpenAI’s Chat Completions API 
 # Reinach 04/Sep/2026
 
 import os, re, json
@@ -13,14 +15,12 @@ class GaiaOutput(BaseModel):
     final_answer: str = ""
 
 # Define the same data, structure in JSON format, to be able to tell the LLM which format I expect to get
+# In JSON terminology, the python data type bool is called a "boolean"
 schema_template = {
-    "is_solvable": "string",
+    "is_solvable": "boolean",
     "unsolvable_reason": "string",
     "final_answer": "string"
 }
-schema_string = json.dumps(schema_template)
-console = Console()
-console.print(f"\nJSON schema_string: {schema_string}", style="gold1", highlight=False)
 
 # Coroutine (function defined with async def) that sends a GAIA problem to the model and receives the structured reply
 async def solve_problem(model: str, question: str) -> GaiaOutput:
@@ -105,6 +105,9 @@ async def run_experiment(
 
 
 # Main
+console = Console()
+schema_string = json.dumps(schema_template)
+console.print(f"\nJSON schema_string: {schema_string}", style="gold1", highlight=False)
 
 vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
 if not vllm_server_fqdn:
@@ -127,11 +130,8 @@ SYSTEM_PROMPT += "Do not include markdown blocks or schema keywords like 'proper
 DATASET_ID = "gaia-benchmark/GAIA"
 SUBSET = "2023_level1"
 
-console = Console()
 console.print(f"\nLoading GAIA dataset", style="gold1", highlight=False)
-
 level1_problems = load_dataset(DATASET_ID, SUBSET, split="validation")
-
 console.print(f"Dataset loaded successfully!\n", style="gold1")
 print(f"Number of Level 1 problems: {len(level1_problems)}")
 print(f"Dataset structure: {level1_problems}")
