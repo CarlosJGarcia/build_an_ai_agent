@@ -1,4 +1,4 @@
-# Loads the GAIA (General AI Assistants) dataset from HuggingFace
+# Loads the GAIA (General AI Assistants) dataset from Hugging Face
 # 'Convinces' the LLM to reply using data structures (JSON)
 # OpenAI’s Chat Completions API 
 # Reinach 04/Sep/2026
