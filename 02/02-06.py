@@ -4,6 +4,7 @@
 # Reinach 04/Sep/2026
 
 import os, re, json
+from openai import OpenAI
 from pydantic import BaseModel
 from rich.console import Console
 from datasets import load_dataset
@@ -143,6 +144,39 @@ for key, value in sample.items():
     content_preview = str(value)[:200].replace('\n', ' ')
     print(f"{key}: {content_preview}...")
 
+print()
+
+client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
+
+# List of dictionaries. Should be named 'messages' for alignment with the examples in OpenAI's SDK specification 
+prompts = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": "What is the capital of France?"}
+    ]
+response = client.chat.completions.create(model=MODEL_NAME, messages=prompts)
+clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
+
+
+# Sanitizer. Regex that catches any variation of a stuttered opening brace ({{, {"{, etc.) and flattens it.
+clean_response = re.sub(r'^\{\s*\"?\{', '{', clean_response)
+
+# Unwrap Safeguard. Parse the raw string into a standard Python dictionary first
+try:
+    dict_response = json.loads(clean_response)
+except json.JSONDecodeError:
+    raise ValueError(f"Model failed to output valid JSON. Raw output: {clean_response}")
+
+# If the model stubbornly wrapped the output in a "properties" key, unwrap it
+if "properties" in dict_response:
+    raw_dict = dict_response["properties"]
+
+# Manually parse the clean JSON string into the Pydantic object
+final_response = GaiaOutput.model_validate(dict_response)
+
+print(f"Response: {clean_response}")
+print(f"Response, extrated from JSON using Pydantic: {final_response}")
+print(f"Answer, extrated from JSON using Pydantic: {final_response.final_answer}")
+print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
 print()
 
 
