@@ -9,6 +9,7 @@ if not vllm_server_fqdn:
     raise ValueError("ERROR: VLLM_SERVER_FQDN environment variable is not set.")
 vllm_url = f"http://{vllm_server_fqdn}:8000/v1"
 MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
+MODEL_TEMPERATURE = 0.7                # 0.0 Deterministic, 0.7 Sweet spot for chat, 1.0 Too creative: hallucinations and tangential responses
 
 client = OpenAI(base_url=vllm_url, api_key="EMPTY")
 
@@ -37,10 +38,7 @@ while active:
 
     try:
         # 2. Call local vLLM server passing full conversation history
-        response = client.chat.completions.create(
-            model=MODEL_NAME, 
-            messages=messages
-        )
+        response = client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)
 
         clean_response = response.choices[0].message.content.strip()
 
@@ -52,8 +50,8 @@ while active:
         
         usage = response.usage
         console.print(
-            f"[dim]Tokens: {usage.total_tokens} Total = {usage.prompt_tokens} (Prompt) + {usage.completion_tokens} (Completion)[/dim]\n",
-            style="white"
+            f"Tokens: {usage.total_tokens} Total = {usage.prompt_tokens} (Prompt) + {usage.completion_tokens} (Completion)\n",
+            style="white", highlight=False
         )
 
     except Exception as e:
