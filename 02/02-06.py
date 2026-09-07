@@ -1,4 +1,4 @@
-# Loads the GAIA (General AI Assistants) dataset from Hugging Face
+# Loads the GAIA (General AI Assistants) dataset from Meta and Hugging Face
 # 'Convinces' the LLM to reply using data structures (JSON)
 # OpenAI’s Chat Completions API 
 # Reinach 04/Sep/2026
@@ -131,14 +131,14 @@ SYSTEM_PROMPT += "Do not include markdown blocks or schema keywords like 'proper
 DATASET_ID = "gaia-benchmark/GAIA"
 SUBSET = "2023_level1"
 
-console.print(f"\nLoading GAIA dataset", style="gold1", highlight=False)
+console.print(f"\nLoading GAIA dataset, Level 1, validation split", style="gold1", highlight=False)
 level1_problems = load_dataset(DATASET_ID, SUBSET, split="validation")
 console.print(f"Dataset loaded successfully!\n", style="gold1")
-print(f"Number of Level 1 problems: {len(level1_problems)}")
+print(f"Number of problems: {len(level1_problems)}")
 print(f"Dataset structure: {level1_problems}")
 
-# Inspecting the first item in the 'validation' split
-console.print(f"\nSample data:", style="gold1")
+# Inspecting the first item in Level 1, 'validation' split
+console.print(f"\nDataset sample item:", style="gold1")
 sample = level1_problems[0] 
 for key, value in sample.items():
     content_preview = str(value)[:200].replace('\n', ' ')
@@ -146,16 +146,22 @@ for key, value in sample.items():
 
 print()
 
+# Inferencia simple
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
 
+console.print(f"Test simple inference:", style="gold1")
 # List of dictionaries. Should be named 'messages' for alignment with the examples in OpenAI's SDK specification 
-prompts = [
+messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": "What is the capital of France?"}
     ]
-response = client.chat.completions.create(model=MODEL_NAME, messages=prompts)
-clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
 
+console.print("Question:", style="white", highlight=False)
+for item in messages:
+    console.print(f"{item}", style="white", highlight=False)
+
+response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
+clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
 
 # Sanitizer. Regex that catches any variation of a stuttered opening brace ({{, {"{, etc.) and flattens it.
 clean_response = re.sub(r'^\{\s*\"?\{', '{', clean_response)
