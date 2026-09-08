@@ -6,6 +6,7 @@
 # Model responses are added with the assistant role (dictionary key)
 
 import os
+import time
 from openai import OpenAI
 from rich.console import Console
 
@@ -30,12 +31,16 @@ console.print("Pregunta:", style="white", highlight=False)
 for item in messages:
     console.print(f"{item}", style="white", highlight=False)
 
+start_time = time.time()
 response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
 clean_response = response.choices[0].message.content.strip()                      # Remove trailing \n in the LLM response
 messages.append({"role": "assistant", "content": clean_response})                 # Add the reply to the list. Use the role (dictionary key) "assistant"
+end_time = time.time()
+execution_time_minutes = (end_time - start_time) / 60
 
 print(f"Respuesta: {clean_response}")
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
+console.print(f"Time: {execution_time_minutes:.2f} minutes.", style="cyan", highlight=False)
 
 console.print("Updated 'messages':", style="white", highlight=False)
 for item in messages:
@@ -51,12 +56,16 @@ console.print("Pregunta:", style="white", highlight=False)
 for item in messages:
     console.print(f"{item}", style="white", highlight=False)
 
+start_time = time.time()
 response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
 clean_response = response.choices[0].message.content.strip()                      # Remove trailing \n in the LLM response
 messages.append({"role": "assistant", "content": clean_response})                 # Add the reply to the list. Use the role (dictionary key) "assistant"
+end_time = time.time()
+execution_time_minutes = (end_time - start_time) / 60
 
 print(f"Respuesta: {clean_response}")
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
+console.print(f"Time: {execution_time_minutes:.2f} minutes.", style="cyan", highlight=False)
 
 console.print("Updated 'messages':", style="white", highlight=False)
 for item in messages:

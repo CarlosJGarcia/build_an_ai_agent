@@ -1,4 +1,5 @@
 import os
+import time
 from openai import OpenAI
 from rich.console import Console
 
@@ -38,21 +39,26 @@ while active:
 
     try:
         # 2. Call local vLLM server passing full conversation history
+        start_time = time.time()
         response = client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)
 
         clean_response = response.choices[0].message.content.strip()
 
         # 3. Add assistant response back to history to preserve state
         messages.append({"role": "assistant", "content": clean_response})
+        end_time = time.time()
+        execution_time_minutes = (end_time - start_time) / 60
+
 
         # 4. Display output and token usage
         print(f"AI: {clean_response}\n")
         
         usage = response.usage
         console.print(
-            f"Tokens: {usage.total_tokens} Total = {usage.prompt_tokens} (Prompt) + {usage.completion_tokens} (Completion)\n",
+            f"Tokens: {usage.total_tokens} Total = {usage.prompt_tokens} (Prompt) + {usage.completion_tokens} (Completion)",
             style="white", highlight=False
         )
+        console.print(f"Time: {execution_time_minutes:.2f} minutes\n", style="white", highlight=False)
 
     except Exception as e:
         console.print(f"[bold red]Error communicating with vLLM server:[/bold red] {e}\n")
