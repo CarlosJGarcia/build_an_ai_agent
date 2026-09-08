@@ -232,12 +232,13 @@ final_response_gaia = GaiaOutput.model_validate(dict_response_gaia)
 
 print(f"\nResponse: {clean_response_gaia}")
 print(f"Pydantic Object: {final_response_gaia}")
-print(f"--> Expected Answer (from Dataset): {expected_answer}")
-print(f"--> LLM Final Answer: {final_response_gaia.final_answer}")
+print(f"Answer (from LLM): {final_response_gaia.final_answer}")
+print(f"Answer (from dataset): {expected_answer}")
+
 
 # Validate if the LLM got it right using your existing is_correct function logic
 is_match = is_correct(final_response_gaia.final_answer, expected_answer)
-console.print(f"Match: {is_match}", style="blue" if is_match else "red", highlight=False)
+console.print(f"Match: {is_match}", style="cyan" if is_match else "red", highlight=False)
 
 print(f"Tokens: {response_gaia.usage.total_tokens} (Total) = {response_gaia.usage.prompt_tokens} (Prompt, including 'messages' list) + {response_gaia.usage.completion_tokens} (Completion, this reply including reasoning)")
 print()
