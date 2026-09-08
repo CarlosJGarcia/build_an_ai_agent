@@ -1,3 +1,7 @@
+
+# Goal: Build a research agent that get information from multiple sources, analyzes findings and produce comprehensive answers
+# Use the GAIA benchmark to determine if the agent is doing that or not and measure how well
+
 # Loads the GAIA (General AI Assistants) dataset from Meta and Hugging Face
 # 'Convinces' the LLM to reply using data structures (JSON)
 # OpenAI’s Chat Completions API 
@@ -9,13 +13,13 @@ from pydantic import BaseModel
 from rich.console import Console
 from datasets import load_dataset
 
-# Define data structure (named GaiaOutput) using pydantic 
+# Define data structure (named GaiaOutput) for the LLM reply, using pydantic 
 class GaiaOutput(BaseModel):
     is_solvable: bool
     unsolvable_reason: str = ""
     final_answer: str = ""
 
-# Define the same data, structure in JSON format, to be able to tell the LLM which format I expect to get
+# Define the same data, structured in JSON format, to be able to tell the LLM which format I expect to get
 # In JSON terminology, the python data type bool is called a "boolean"
 schema_template = {
     "is_solvable": "boolean",
@@ -185,6 +189,59 @@ print(f"Answer, extrated from JSON using Pydantic: {final_response.final_answer}
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
 print()
 
+# ---------------------------------------------------------
+# Test inference using the GAIA dataset sample
+# ---------------------------------------------------------
+print("-" * 60)
+console.print(f"Test inference with GAIA sample:", style="gold1")
 
+# Extract the question and the expected ground-truth answer from the sample
+gaia_question = sample["Question"]
+expected_answer = sample["Final answer"]
+
+messages_gaia = [
+    {"role": "system", "content": SYSTEM_PROMPT},
+    {"role": "user", "content": gaia_question}
+]
+
+console.print("GAIA Question:", style="white", highlight=False)
+for item in messages_gaia:
+    console.print(f"{item}", style="white", highlight=False)
+
+# Make the API call (including the MODEL_TEMPERATURE variable defined earlier)
+response_gaia = client.chat.completions.create(
+    model=MODEL_NAME, 
+    messages=messages_gaia,
+    temperature=MODEL_TEMPERATURE
+)
+
+clean_response_gaia = response_gaia.choices[0].message.content.strip()
+
+# Sanitizer
+clean_response_gaia = re.sub(r'^\{\s*\"?\{', '{', clean_response_gaia)
+
+# Unwrap Safeguard
+try:
+    dict_response_gaia = json.loads(clean_response_gaia)
+except json.JSONDecodeError:
+    raise ValueError(f"Model failed to output valid JSON. Raw output: {clean_response_gaia}")
+
+if "properties" in dict_response_gaia:
+    dict_response_gaia = dict_response_gaia["properties"]
+
+# Parse into Pydantic object
+final_response_gaia = GaiaOutput.model_validate(dict_response_gaia)
+
+print(f"\nRaw JSON Response: {clean_response_gaia}")
+print(f"Pydantic Object: {final_response_gaia}")
+print(f"--> Expected Answer (from Dataset): {expected_answer}")
+print(f"--> LLM Final Answer: {final_response_gaia.final_answer}")
+
+# Validate if the LLM got it right using your existing is_correct function logic
+is_match = is_correct(final_response_gaia.final_answer, expected_answer)
+console.print(f"Match: {is_match}", style="green" if is_match else "red")
+
+print(f"Tokens: {response_gaia.usage.total_tokens} (Total) = {response_gaia.usage.prompt_tokens} (Prompt) + {response_gaia.usage.completion_tokens} (Completion)")
+print()
 
 
