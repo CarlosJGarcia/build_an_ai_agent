@@ -189,10 +189,8 @@ print(f"Answer, extrated from JSON using Pydantic: {final_response.final_answer}
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
 print()
 
-# ---------------------------------------------------------
+
 # Test inference using the GAIA dataset sample
-# ---------------------------------------------------------
-print("-" * 60)
 console.print(f"Test inference with GAIA sample:", style="gold1")
 
 # Extract the question and the expected ground-truth answer from the sample
@@ -204,7 +202,7 @@ messages_gaia = [
     {"role": "user", "content": gaia_question}
 ]
 
-console.print("GAIA Question:", style="white", highlight=False)
+console.print("Question:", style="white", highlight=False)
 for item in messages_gaia:
     console.print(f"{item}", style="white", highlight=False)
 
@@ -232,16 +230,16 @@ if "properties" in dict_response_gaia:
 # Parse into Pydantic object
 final_response_gaia = GaiaOutput.model_validate(dict_response_gaia)
 
-print(f"\nRaw JSON Response: {clean_response_gaia}")
+print(f"\nResponse: {clean_response_gaia}")
 print(f"Pydantic Object: {final_response_gaia}")
 print(f"--> Expected Answer (from Dataset): {expected_answer}")
 print(f"--> LLM Final Answer: {final_response_gaia.final_answer}")
 
 # Validate if the LLM got it right using your existing is_correct function logic
 is_match = is_correct(final_response_gaia.final_answer, expected_answer)
-console.print(f"Match: {is_match}", style="green" if is_match else "red")
+console.print(f"Match: {is_match}", style="blue" if is_match else "red", highlight=False)
 
-print(f"Tokens: {response_gaia.usage.total_tokens} (Total) = {response_gaia.usage.prompt_tokens} (Prompt) + {response_gaia.usage.completion_tokens} (Completion)")
+print(f"Tokens: {response_gaia.usage.total_tokens} (Total) = {response_gaia.usage.prompt_tokens} (Prompt, including 'messages' list) + {response_gaia.usage.completion_tokens} (Completion, this reply including reasoning)")
 print()
 
 
