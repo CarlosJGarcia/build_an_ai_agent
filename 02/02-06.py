@@ -138,7 +138,7 @@ SUBSET = "2023_level1"
 
 console.print(f"\nLoading GAIA dataset, Level 1, validation split", style="gold1", highlight=False)
 level1_problems = load_dataset(DATASET_ID, SUBSET, split="validation")
-console.print(f"Dataset loaded successfully!\n", style="gold1")
+console.print(f"Dataset loaded successfully", style="gold1")
 print(f"Number of problems: {len(level1_problems)}")
 print(f"Dataset structure: {level1_problems}")
 
@@ -314,8 +314,8 @@ for i, problem in enumerate(level1_problems, 1):
     
     console.print(f"Match: {is_match}", style="cyan" if is_match else "red", highlight=False)
     speed = response_gaia.usage.total_tokens / execution_time_seconds
-    console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
-    print("-" * 50)
+    console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second", style="cyan", highlight=False)
+    print("-" * 48)
 
 # Display final score
 console.print(f"\nEvaluation Results:", style="gold1", highlight=False)
