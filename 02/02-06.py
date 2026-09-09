@@ -241,8 +241,8 @@ execution_time_seconds = (end_time - start_time)
 
 print(f"\nResponse: {clean_response_gaia}")
 print(f"Pydantic Object: {final_response_gaia}")
-print(f"Answer (from LLM): {final_response_gaia.final_answer}")
-print(f"Answer (from dataset): {expected_answer}")
+print(f"Answer (LLM): {final_response_gaia.final_answer}")
+print(f"Answer (dataset): {expected_answer}")
 
 
 # Validate if the LLM got it right using the is_correct function
@@ -258,10 +258,10 @@ print()
 # ==========================================
 # Full GAIA Level 1 Validation Loop
 # ==========================================
-console.print(f"\n[bold gold1]Starting Evaluation of all {len(level1_problems)} GAIA Level 1 Problems...[/bold gold1]\n")
-
 correct_answers = 0
 total_problems = len(level1_problems)
+console.print(f"\nStarting evaluation of all {total_problems} GAIA level 1 problems", style="gold1", highlight=False)
+
 
 for i, problem in enumerate(level1_problems, 1):
     gaia_question = problem["Question"]
@@ -304,19 +304,22 @@ for i, problem in enumerate(level1_problems, 1):
     end_time = time.time()
     execution_time_seconds = (end_time - start_time)
     
-    # Validate if the LLM got it right
+    # Validate if the LLM got it right using the is_correct function
     is_match = is_correct(predicted_answer, expected_answer)
     if is_match:
         correct_answers += 1
         
-    console.print(f"Answer (LLM): {predicted_answer}")
-    console.print(f"Answer (Dataset): {expected_answer}")
-    console.print(f"Match: {is_match} | Time: {execution_time_seconds:.2f}s", style="cyan" if is_match else "red", highlight=False)
+    print(f"Answer (LLM): {predicted_answer}")
+    print(f"Answer (dataset): {expected_answer}")
+    
+    console.print(f"Match: {is_match}", style="cyan" if is_match else "red", highlight=False)
+    speed = response_gaia.usage.total_tokens / execution_time_seconds
+    console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
     print("-" * 50)
 
-# Final Score Display
-console.print(f"\n[bold green]Final Evaluation Results:[/bold green]")
-console.print(f"Correct answers {correct_answers} / {total_problems}", style="gold1", highlight=False)
+# Display final score
+console.print(f"\nEvaluation Results:", style="gold1", highlight=False)
+print(f"Correct answers {correct_answers} / {total_problems}")
 print()
 
 
