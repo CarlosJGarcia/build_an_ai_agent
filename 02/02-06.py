@@ -1,4 +1,3 @@
-
 # Goal: Build a research agent that get information from multiple sources, analyzes findings and produce comprehensive answers
 # Use the GAIA benchmark to determine if the agent is doing that or not and measure how well
 
@@ -7,6 +6,7 @@
 # OpenAI’s Chat Completions API 
 # Reinach 04/Sep/2026
 
+import time
 import os, re, json
 from openai import OpenAI
 from pydantic import BaseModel
@@ -121,6 +121,7 @@ vllm_url = f"http://{vllm_server_fqdn}:8000/v1"
 MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
 MODEL_TEMPERATURE = 0.0
 
+# GAIA’s standard evaluation prompt, instructs the model to provide answers in a consistent format
 SYSTEM_PROMPT = "You are a general AI assistant. I will ask you a question. First, determine if you can solve this problem with your current capabilities "
 SYSTEM_PROMPT += "and set “is_solvable” accordingly. If you can solve it, set “is_solvable” to true and provide your answer in “final_answer”. "
 SYSTEM_PROMPT += "If you cannot solve it, set “is_solvable” to false and explain why in “unsolvable_reason”. Your final answer should be a number OR "
@@ -154,6 +155,7 @@ print()
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
 
 console.print(f"Test simple inference:", style="gold1")
+
 # List of dictionaries. Should be named 'messages' for alignment with the examples in OpenAI's SDK specification 
 messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
@@ -164,6 +166,7 @@ console.print("Question:", style="white", highlight=False)
 for item in messages:
     console.print(f"{item}", style="white", highlight=False)
 
+start_time = time.time()
 response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
 clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
 
@@ -182,16 +185,19 @@ if "properties" in dict_response:
 
 # Manually parse the clean JSON string into the Pydantic object
 final_response = GaiaOutput.model_validate(dict_response)
+end_time = time.time()
+execution_time_seconds = (end_time - start_time)
 
 print(f"Response: {clean_response}")
 print(f"Response, extrated from JSON using Pydantic: {final_response}")
 print(f"Answer, extrated from JSON using Pydantic: {final_response.final_answer}")
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
+console.print(f"Time: {execution_time_seconds:.2f} seconds\n", style="cyan", highlight=False)
 print()
 
 
 # Test inference using the GAIA dataset sample
-console.print(f"Test inference with GAIA sample:", style="gold1")
+console.print(f"Inference with GAIA sample:", style="gold1")
 
 # Extract the question and the expected ground-truth answer from the sample
 gaia_question = sample["Question"]
@@ -207,6 +213,7 @@ for item in messages_gaia:
     console.print(f"{item}", style="white", highlight=False)
 
 # Make the API call (including the MODEL_TEMPERATURE variable defined earlier)
+start_time = time.time()
 response_gaia = client.chat.completions.create(
     model=MODEL_NAME, 
     messages=messages_gaia,
@@ -229,6 +236,8 @@ if "properties" in dict_response_gaia:
 
 # Parse into Pydantic object
 final_response_gaia = GaiaOutput.model_validate(dict_response_gaia)
+end_time = time.time()
+execution_time_seconds = (end_time - start_time)
 
 print(f"\nResponse: {clean_response_gaia}")
 print(f"Pydantic Object: {final_response_gaia}")
@@ -236,11 +245,13 @@ print(f"Answer (from LLM): {final_response_gaia.final_answer}")
 print(f"Answer (from dataset): {expected_answer}")
 
 
-# Validate if the LLM got it right using your existing is_correct function logic
+# Validate if the LLM got it right using the is_correct function
 is_match = is_correct(final_response_gaia.final_answer, expected_answer)
 console.print(f"Match: {is_match}", style="cyan" if is_match else "red", highlight=False)
 
 print(f"Tokens: {response_gaia.usage.total_tokens} (Total) = {response_gaia.usage.prompt_tokens} (Prompt, including 'messages' list) + {response_gaia.usage.completion_tokens} (Completion, this reply including reasoning)")
+speed = response_gaia.usage.total_tokens / execution_time_seconds
+console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
 print()
 
 
