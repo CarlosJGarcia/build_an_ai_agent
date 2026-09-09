@@ -4,6 +4,7 @@
 # By swiching from "conversation mode" to "data structures" we bridge the gap between a "conversational brain" and the strict requirements of APIs and tools
 # This code forces the chaotic, natural-language output of an LLM into predictable, strongly-typed code objects before the rest of the software toches it
 
+import time
 import os, re, json
 from openai import OpenAI
 from pydantic import BaseModel
@@ -45,6 +46,7 @@ console.print("Pregunta:", style="white", highlight=False)
 for item in messages:
     console.print(f"{item}", style="white", highlight=False)
 
+start_time = time.time()
 response = client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)
 
 # Get the raw text string
@@ -65,9 +67,13 @@ if "properties" in dict_response:
 
 # Manually parse the clean JSON string into the Pydantic object
 final_response = ExtractedInfo.model_validate(dict_response)
+end_time = time.time()
+execution_time_seconds = (end_time - start_time)
+
 
 print(f"Response: {clean_response}")
 print(f"Response, extrated from JSON using Pydantic: {final_response}")
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
+console.print(f"Time: {execution_time_seconds:.2f} seconds", style="cyan", highlight=False)
 print()
 

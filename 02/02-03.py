@@ -40,7 +40,7 @@ execution_time_minutes = (end_time - start_time) / 60
 
 print(f"Respuesta: {clean_response}")
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
-console.print(f"Time: {execution_time_minutes:.2f} minutes.", style="cyan", highlight=False)
+console.print(f"Time: {execution_time_minutes:.2f} minutes", style="cyan", highlight=False)
 
 console.print("Updated 'messages':", style="white", highlight=False)
 for item in messages:
@@ -65,7 +65,7 @@ execution_time_minutes = (end_time - start_time) / 60
 
 print(f"Respuesta: {clean_response}")
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
-console.print(f"Time: {execution_time_minutes:.2f} minutes.", style="cyan", highlight=False)
+console.print(f"Time: {execution_time_minutes:.2f} minutes", style="cyan", highlight=False)
 
 console.print("Updated 'messages':", style="white", highlight=False)
 for item in messages:
