@@ -2,6 +2,7 @@
 # Asynchronous LLM calls
 
 import os
+import time
 import asyncio
 from openai import AsyncOpenAI
 from rich.console import Console
@@ -45,32 +46,38 @@ async def call_llm(prompt: str) -> str:
 # Wrap the execution block in a main function. This not needed in Jupyter Notebooks but required in .py for asyncio's "await" to work
 async def main():
 
-    # List with three questions
+    
+    # Execute three requests/questions concurrently
+    start_time = time.time()
     prompts = ["What is 2 + 2?", "What is the capital of Japan?", "Who wrote Romeo and Juliet?"]
-
-    # Execute the three requests concurrently
     console.print(f"\nAsking {len(prompts)} simultaneous questions", style="gold1", highlight=False)
     tasks = [get_response(p) for p in prompts]
 
     # Waits for all the asynchronous operations to complete
     results = await asyncio.gather(*tasks)
+    end_time = time.time()
+    execution_time_seconds = (end_time - start_time)
 
     # Show each question and the result
     for prompt, result in zip(prompts, results):
         console.print(f"Q: {prompt}", style="white", highlight=False)
         print(f"A: {result}\n")
+    console.print(f"Time: {execution_time_seconds:.2f} seconds\n", style="cyan", highlight=False)
 
     # Now 100 concurrent tasks,with a concurrency limit of at a time
+    start_time = time.time()
     prompts = [f"What is {i} + {i}?" for i in range(100)]
     console.print(f"Asking {len(prompts)} simultaneous questions with a concurrence limit of {CONCURRENT} at a time", style="gold1", highlight=False)
     tasks = [call_llm(p) for p in prompts]
     results = await asyncio.gather(*tasks, return_exceptions=True)
+    end_time = time.time()
+    execution_time_minutes = (end_time - start_time) / 60
 
     # Show each question and the result
     for prompt, result in zip(prompts, results):
         console.print(f"Q: {prompt}", style="white", highlight=False)
         print(f"A: {result}\n")
-
+    console.print(f"Time: {execution_time_minutes:.2f} minutes\n", style="cyan", highlight=False)
 
 
 # Run the main function using asyncio.run
