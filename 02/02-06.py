@@ -130,7 +130,7 @@ SYSTEM_PROMPT += "your number; also don’t use units such as $ or a percent sig
 SYSTEM_PROMPT += "neither abbreviations (e.g., for cities), and write the digits in plain text unless specified otherwise. If you are asked for a comma-separated "
 SYSTEM_PROMPT += "list, apply the above rules depending on whether the element is a number or a string."
 SYSTEM_PROMPT += "Output plain text only. Do not use emojis or emoticons. "
-SYSTEM_PROMPT += F"Output ONLY a valid JSON object matching this schema: {schema_string}. "
+SYSTEM_PROMPT += f"Output ONLY a valid JSON object matching this schema: {schema_string}. "
 SYSTEM_PROMPT += "Do not include markdown blocks or schema keywords like 'properties' in your final output."
 
 DATASET_ID = "gaia-benchmark/GAIA"
@@ -252,6 +252,71 @@ console.print(f"Match: {is_match}", style="cyan" if is_match else "red", highlig
 print(f"Tokens: {response_gaia.usage.total_tokens} (Total) = {response_gaia.usage.prompt_tokens} (Prompt, including 'messages' list) + {response_gaia.usage.completion_tokens} (Completion, this reply including reasoning)")
 speed = response_gaia.usage.total_tokens / execution_time_seconds
 console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
+print()
+
+
+# ==========================================
+# Full GAIA Level 1 Validation Loop
+# ==========================================
+console.print(f"\n[bold gold1]Starting Evaluation of all {len(level1_problems)} GAIA Level 1 Problems...[/bold gold1]\n")
+
+correct_answers = 0
+total_problems = len(level1_problems)
+
+for i, problem in enumerate(level1_problems, 1):
+    gaia_question = problem["Question"]
+    expected_answer = problem["Final answer"]
+
+    messages_gaia = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": gaia_question}
+    ]
+    
+    console.print(f"Problem {i}/{total_problems}:", style="white", highlight=False)
+    
+    start_time = time.time()
+    try:
+        # Make the API call
+        response_gaia = client.chat.completions.create(
+            model=MODEL_NAME, 
+            messages=messages_gaia,
+            temperature=MODEL_TEMPERATURE
+        )
+        
+        clean_response_gaia = response_gaia.choices[0].message.content.strip()
+        
+        # Sanitizer
+        clean_response_gaia = re.sub(r'^\{\s*\"?\{', '{', clean_response_gaia)
+        
+        # Unwrap Safeguard
+        dict_response_gaia = json.loads(clean_response_gaia)
+        if "properties" in dict_response_gaia:
+            dict_response_gaia = dict_response_gaia["properties"]
+            
+        # Parse into Pydantic object
+        final_response_gaia = GaiaOutput.model_validate(dict_response_gaia)
+        predicted_answer = final_response_gaia.final_answer
+        
+    except Exception as e:
+        console.print(f"Error processing problem {i}: {e}", style="red")
+        predicted_answer = ""
+        
+    end_time = time.time()
+    execution_time_seconds = (end_time - start_time)
+    
+    # Validate if the LLM got it right
+    is_match = is_correct(predicted_answer, expected_answer)
+    if is_match:
+        correct_answers += 1
+        
+    console.print(f"Answer (LLM): {predicted_answer}")
+    console.print(f"Answer (Dataset): {expected_answer}")
+    console.print(f"Match: {is_match} | Time: {execution_time_seconds:.2f}s", style="cyan" if is_match else "red", highlight=False)
+    print("-" * 50)
+
+# Final Score Display
+console.print(f"\n[bold green]Final Evaluation Results:[/bold green]")
+console.print(f"Correct answers {correct_answers} / {total_problems}", style="gold1", highlight=False)
 print()
 
 
