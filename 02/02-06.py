@@ -318,7 +318,7 @@ for i, problem in enumerate(level1_problems, 1):
     print("-" * 48)
 
 # Display final score
-console.print(f"\nEvaluation Results:", style="gold1", highlight=False)
+console.print(f"\nEvaluation results:", style="gold1", highlight=False)
 print(f"Correct answers = Accuracy {correct_answers} / {total_problems} ({(correct_answers / total_problems * 100):.0f}%)")
 print()
 
