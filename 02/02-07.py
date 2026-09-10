@@ -205,7 +205,7 @@ print()
 
 
 # ---------------------------
-# Segundo modelo
+# Second model
 # ---------------------------
 
 
@@ -382,3 +382,71 @@ print(f"Correct answers = Accuracy {correct_answers} / {total_problems} ({(corre
 print()
 
 """
+
+
+# ===============================================
+# Full GAIA Level 1 Validation Loop, second model
+# ===============================================
+correct_answers = 0
+total_problems = len(level1_problems)
+console.print(f"\nStarting evaluation of all {total_problems} GAIA level 1 problems with the second model", style="gold1", highlight=False)
+
+
+for i, problem in enumerate(level1_problems, 1):
+    gaia_question = problem["Question"]
+    expected_answer = problem["Final answer"]
+
+    messages_gaia = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": gaia_question}
+    ]
+    
+    console.print(f"Problem {i}/{total_problems}:", style="white", highlight=False)
+    
+    start_time = time.time()
+    try:
+        # Make the API call
+        response_gaia = client_bis.chat.completions.create(
+            model=BIS_MODEL_NAME, 
+            messages=messages_gaia,
+            temperature=MODEL_TEMPERATURE
+        )
+        
+        clean_response_gaia = response_gaia.choices[0].message.content.strip()
+        
+        # Sanitizer
+        clean_response_gaia = re.sub(r'^\{\s*\"?\{', '{', clean_response_gaia)
+        
+        # Unwrap Safeguard
+        dict_response_gaia = json.loads(clean_response_gaia)
+        if "properties" in dict_response_gaia:
+            dict_response_gaia = dict_response_gaia["properties"]
+            
+        # Parse into Pydantic object
+        final_response_gaia = GaiaOutput.model_validate(dict_response_gaia)
+        predicted_answer = final_response_gaia.final_answer
+        
+    except Exception as e:
+        console.print(f"Error processing problem {i}: {e}", style="red")
+        predicted_answer = ""
+        
+    end_time = time.time()
+    execution_time_seconds = (end_time - start_time)
+    
+    # Validate if the LLM got it right using the is_correct function
+    is_match = is_correct(predicted_answer, expected_answer)
+    if is_match:
+        correct_answers += 1
+        
+    print(f"Answer (LLM): {predicted_answer}")
+    print(f"Answer (dataset): {expected_answer}")
+    
+    console.print(f"Match: {is_match}", style="cyan" if is_match else "red", highlight=False)
+    speed = response_gaia.usage.total_tokens / execution_time_seconds
+    console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second", style="cyan", highlight=False)
+    print("-" * 48)
+
+# Display final score
+console.print(f"\nEvaluation results with the second model:", style="gold1", highlight=False)
+print(f"Correct answers = Accuracy {correct_answers} / {total_problems} ({(correct_answers / total_problems * 100):.0f}%)")
+print()
