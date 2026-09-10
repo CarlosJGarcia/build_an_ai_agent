@@ -167,7 +167,7 @@ console.print(f"Test simple inference:", style="gold1")
 # List of dictionaries. Should be named 'messages' for alignment with the examples in OpenAI's SDK specification 
 messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": "What is the capital of France?"}
+        {"role": "user", "content": 'Based strictly on your underlying architecture, are you a standard Dense model or a Mixture-of-Experts (MoE) model? Set "is_solvable" to true, and output strictly the word "Dense" or "MoE" in the final_answer.'}
     ]
 
 console.print("Question:", style="white", highlight=False)
@@ -217,7 +217,7 @@ console.print(f"Test simple inference with the second model:", style="gold1")
 # List of dictionaries. Should be named 'messages' for alignment with the examples in OpenAI's SDK specification 
 messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": "What is the capital of Germany?"}
+        {"role": "user", "content": 'Based strictly on your underlying architecture, are you a standard Dense model or a Mixture-of-Experts (MoE) model? Set "is_solvable" to true, and output strictly the word "Dense" or "MoE" in the final_answer.'}
     ]
 
 console.print("Question:", style="white", highlight=False)
