@@ -254,66 +254,7 @@ console.print(f"Time: {execution_time_seconds:.2f} seconds\n", style="cyan", hig
 print()
 
 
-"""
-# Test inference using the GAIA dataset sample
-console.print(f"Inference with GAIA sample:", style="gold1")
 
-# Extract the question and the expected ground-truth answer from the sample
-gaia_question = sample["Question"]
-expected_answer = sample["Final answer"]
-
-messages_gaia = [
-    {"role": "system", "content": SYSTEM_PROMPT},
-    {"role": "user", "content": gaia_question}
-]
-
-console.print("Question:", style="white", highlight=False)
-for item in messages_gaia:
-    console.print(f"{item}", style="white", highlight=False)
-
-# Make the API call (including the MODEL_TEMPERATURE variable defined earlier)
-start_time = time.time()
-response_gaia = client.chat.completions.create(
-    model=MODEL_NAME, 
-    messages=messages_gaia,
-    temperature=MODEL_TEMPERATURE
-)
-
-clean_response_gaia = response_gaia.choices[0].message.content.strip()
-
-# Sanitizer
-clean_response_gaia = re.sub(r'^\{\s*\"?\{', '{', clean_response_gaia)
-
-# Unwrap Safeguard
-try:
-    dict_response_gaia = json.loads(clean_response_gaia)
-except json.JSONDecodeError:
-    raise ValueError(f"Model failed to output valid JSON. Raw output: {clean_response_gaia}")
-
-if "properties" in dict_response_gaia:
-    dict_response_gaia = dict_response_gaia["properties"]
-
-# Parse into Pydantic object
-final_response_gaia = GaiaOutput.model_validate(dict_response_gaia)
-end_time = time.time()
-execution_time_seconds = (end_time - start_time)
-
-print(f"\nResponse: {clean_response_gaia}")
-print(f"Pydantic Object: {final_response_gaia}")
-print(f"Answer (LLM): {final_response_gaia.final_answer}")
-print(f"Answer (dataset): {expected_answer}")
-
-
-# Validate if the LLM got it right using the is_correct function
-is_match = is_correct(final_response_gaia.final_answer, expected_answer)
-console.print(f"Match: {is_match}", style="cyan" if is_match else "red", highlight=False)
-
-print(f"Tokens: {response_gaia.usage.total_tokens} (Total) = {response_gaia.usage.prompt_tokens} (Prompt, including 'messages' list) + {response_gaia.usage.completion_tokens} (Completion, this reply including reasoning)")
-speed = response_gaia.usage.total_tokens / execution_time_seconds
-console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
-print()
-
-"""
 
 # ==========================================
 # Full GAIA Level 1 Validation Loop
