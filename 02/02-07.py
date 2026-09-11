@@ -313,6 +313,7 @@ speed = response_gaia.usage.total_tokens / execution_time_seconds
 console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
 print()
 
+"""
 
 # ==========================================
 # Full GAIA Level 1 Validation Loop
@@ -381,7 +382,7 @@ console.print(f"\nEvaluation results:", style="gold1", highlight=False)
 print(f"Correct answers = Accuracy {correct_answers} / {total_problems} ({(correct_answers / total_problems * 100):.0f}%)")
 print()
 
-"""
+
 
 
 # ===============================================
