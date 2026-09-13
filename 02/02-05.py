@@ -24,7 +24,7 @@ semaphore = asyncio.Semaphore(CONCURRENT)
 # Initialize the async client (it will automatically look for OPENAI_API_KEY in your environment)
 client = AsyncOpenAI(base_url=vllm_url, api_key="EMPTY") 
 
-# Coroutine (function defined with async def) for the three simulatenous questions
+# Coroutine (function defined with async def) for the three simultaneous questions
 async def get_response(prompt: str) -> str:
     messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}]
     response = await client.chat.completions.create(model=MODEL_NAME, messages=messages)
@@ -67,7 +67,7 @@ async def main():
     # Now 100 concurrent tasks,with a concurrency limit of at a time
     start_time = time.time()
     prompts = [f"What is {i} + {i}?" for i in range(100)]
-    console.print(f"Asking {len(prompts)} simultaneous questions with a concurrence limit of {CONCURRENT} at a time", style="gold1", highlight=False)
+    console.print(f"Asking {len(prompts)} simultaneous questions with a concurrency limit of {CONCURRENT} at a time", style="gold1", highlight=False)
     tasks = [call_llm(p) for p in prompts]
     results = await asyncio.gather(*tasks, return_exceptions=True)
     end_time = time.time()

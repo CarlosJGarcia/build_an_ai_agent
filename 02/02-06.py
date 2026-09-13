@@ -1,5 +1,5 @@
-# Goal: Build a research agent that get information from multiple sources, analyzes findings and produce comprehensive answers
-# Use the GAIA benchmark to determine if the agent is doing that or not and measure how well
+# Long-term goal: Build a research agent that get information from multiple sources, analyzes findings and produce comprehensive answers
+# Evaluation: Use the GAIA benchmark to determine if the agent is doing that or not and measure how well
 
 # Loads the GAIA (General AI Assistants) dataset from Meta and Hugging Face
 # 'Convinces' the LLM to reply using data structures (JSON)
