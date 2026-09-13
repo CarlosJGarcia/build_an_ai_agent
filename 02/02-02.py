@@ -1,6 +1,6 @@
 # OpenAI’s Chat Completions API 
 # Demostrating that LLMs are stateless
-# Each call to client.chat.completions.create() API is independent and has no memory of a previous calls
+# Each call to client.chat.completions.create() API is independent and has no memory of previous calls
 
 import os
 from openai import OpenAI
