@@ -27,6 +27,7 @@ schema_template = {
     "final_answer": "string"
 }
 
+"""
 # Coroutine (function defined with async def) that sends a GAIA problem to the model and receives the structured reply
 async def solve_problem(model: str, question: str) -> GaiaOutput:
     
@@ -52,7 +53,7 @@ async def solve_problem(model: str, question: str) -> GaiaOutput:
                 final_answer=""
             )
         return GaiaOutput.model_validate_json(content)
-
+"""
 
 # Answer validation
 def is_correct(prediction: str | None, answer: str) -> bool:
@@ -61,10 +62,10 @@ def is_correct(prediction: str | None, answer: str) -> bool:
         return False
     return prediction.strip().lower() == answer.strip().lower()
 
-
-
+"""
+# Evaluate a single problem-model pair and return result
 async def evaluate_gaia_single(problem: dict, model: str) -> dict:
-    """Evaluate a single problem-model pair and return result."""
+    
     try:
         output = await solve_problem(model, problem["Question"])
         return {
@@ -87,12 +88,12 @@ async def evaluate_gaia_single(problem: dict, model: str) -> dict:
             "error": str(e),
         }
 
-
+# Evaluate all models on all problems
 async def run_experiment(
     problems: list[dict],
     models: list[str],
 ) -> dict[str, list]:
-    """Evaluate all models on all problems."""
+    
     tasks = [
         evaluate_gaia_single(problem, model)
         for problem in problems
@@ -107,7 +108,7 @@ async def run_experiment(
         results[result["model"]].append(result)
 
     return results
-
+"""
 
 # Main
 console = Console()
@@ -126,7 +127,6 @@ if not ollama_server_fqdn:
     raise ValueError("ERROR: OLLAMA_SERVER_FQDN environment variable is not set.")
 ollama_url = f"http://{ollama_server_fqdn}:11434/v1"
 BIS_MODEL_NAME = "qwen3:14b"
-
 
 
 # GAIA’s standard evaluation prompt, instructs the model to provide answers in a consistent format

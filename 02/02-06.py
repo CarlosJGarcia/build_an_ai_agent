@@ -6,6 +6,8 @@
 # OpenAI’s Chat Completions API 
 # Reinach 04/Sep/2026
 
+import asyncio
+
 import time
 import os, re, json
 from openai import OpenAI
@@ -27,6 +29,7 @@ schema_template = {
     "final_answer": "string"
 }
 
+"""
 # Coroutine (function defined with async def) that sends a GAIA problem to the model and receives the structured reply
 async def solve_problem(model: str, question: str) -> GaiaOutput:
     
@@ -52,7 +55,7 @@ async def solve_problem(model: str, question: str) -> GaiaOutput:
                 final_answer=""
             )
         return GaiaOutput.model_validate_json(content)
-
+"""
 
 # Answer validation
 def is_correct(prediction: str | None, answer: str) -> bool:
@@ -62,9 +65,10 @@ def is_correct(prediction: str | None, answer: str) -> bool:
     return prediction.strip().lower() == answer.strip().lower()
 
 
-
+"""
+# Evaluate a single problem-model pair and return result.
 async def evaluate_gaia_single(problem: dict, model: str) -> dict:
-    """Evaluate a single problem-model pair and return result."""
+    
     try:
         output = await solve_problem(model, problem["Question"])
         return {
@@ -88,11 +92,12 @@ async def evaluate_gaia_single(problem: dict, model: str) -> dict:
         }
 
 
+# Evaluate all models on all problems.
 async def run_experiment(
     problems: list[dict],
     models: list[str],
 ) -> dict[str, list]:
-    """Evaluate all models on all problems."""
+    
     tasks = [
         evaluate_gaia_single(problem, model)
         for problem in problems
@@ -107,7 +112,8 @@ async def run_experiment(
         results[result["model"]].append(result)
 
     return results
-
+"""
+    
 
 # Main
 console = Console()
