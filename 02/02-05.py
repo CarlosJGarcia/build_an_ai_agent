@@ -1,5 +1,9 @@
-# OpenAI’s Chat Completions API 
-# Concurrent LLM calls
+# First, sends three questions concurrently to an OpenAI-compatible LLM server. It prints each question, its answer and the total execution time
+# Then, sends 100 questions concurrently to an OpenAI-compatible LLM server. It prints each question, its answer and the total execution time
+
+# OpenAI -> Chat Completions
+# AsyncOpenAI -> Concurrent Chat Completion
+# Asyncio -> Concurrency framework for I/O-bound tasks like DB queries or LLM inference
 
 import os
 import time
@@ -24,8 +28,8 @@ semaphore = asyncio.Semaphore(CONCURRENT)
 # Initialize the async client (it will automatically look for OPENAI_API_KEY in your environment)
 client = AsyncOpenAI(base_url=vllm_url, api_key="EMPTY") 
 
-# Coroutine (function defined with async def) for the three simultaneous questions
-async def get_response(prompt: str) -> str:
+# Coroutine for the three questions
+async def get_response(prompt: str):
     messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}]
     response = await client.chat.completions.create(model=MODEL_NAME, messages=messages)
     clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
@@ -33,8 +37,8 @@ async def get_response(prompt: str) -> str:
     return clean_response
 
 
-# Coroutine (function defined with async def) for the ten simulatenous questions
-async def call_llm(prompt: str) -> str:
+# Coroutine for the 100 questions, with semaphore to limit the concurrency
+async def call_llm(prompt: str):
     async with semaphore:
         messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}]
         response = await client.chat.completions.create(model=MODEL_NAME, messages=messages)  # Automatic retry with exponential backoff
@@ -43,10 +47,8 @@ async def call_llm(prompt: str) -> str:
         return clean_response
 
 
-# Wrap the execution block in a main function. This not needed in Jupyter Notebooks but required in .py for asyncio's "await" to work
 async def main():
 
-    
     # Execute three requests/questions concurrently
     start_time = time.time()
     prompts = ["What is 2 + 2?", "What is the capital of Japan?", "Who wrote Romeo and Juliet?"]
@@ -80,6 +82,5 @@ async def main():
     console.print(f"Time: {execution_time_minutes:.2f} minutes\n", style="cyan", highlight=False)
 
 
-# Run the main function using asyncio.run
-if __name__ == "__main__":
-    asyncio.run(main())
+# Main  
+asyncio.run(main())

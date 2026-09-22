@@ -1,3 +1,7 @@
+# Loads GAIA dataset Level 1 questions and evaluate two OpenAI-compatible LLM 
+# Report each model’s accuracy and token-processing speed
+# Sequential execution: Model 1 53 questions one by one and them Model 2 53 questions one by one
+
 # Goal: Build a research agent that get information from multiple sources, analyzes findings and produce comprehensive answers
 # Use the GAIA benchmark to determine if the agent is doing that or not and measure how well
 
