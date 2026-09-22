@@ -118,7 +118,7 @@ async def run_experiment(
 # Main
 console = Console()
 schema_string = json.dumps(schema_template)
-console.print(f"\nJSON schema_string: {schema_string}", style="gold1", highlight=False)
+console.print(f"\npytJSON schema_string: {schema_string}", style="gold1", highlight=False)
 
 vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
 if not vllm_server_fqdn:

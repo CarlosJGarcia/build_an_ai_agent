@@ -2,7 +2,7 @@
 # Structured data extraction
 # Demonstrating how to 'convince' a LLM to reply using data structures (JSON)
 # By swiching from "conversation mode" to "data structures" we bridge the gap between a "conversational brain" and the strict requirements of APIs and tools
-# This code forces the chaotic, natural-language output of an LLM into predictable, strongly-typed code objects before the rest of the software toches it
+# This code forces the natural-language output of an LLM into predictable, strongly-typed code objects before the rest of the software toches it
 
 import time
 import os, re, json
