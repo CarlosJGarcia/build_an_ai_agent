@@ -1,6 +1,6 @@
-# Loads GAIA dataset Level 1 questions and evaluate two OpenAI-compatible LLM 
+# Loads GAIA dataset Level 1 questions and evaluate two OpenAI-compatible LLMs 
 # Report each model’s accuracy and token-processing speed
-# Sequential execution: Model 1 53 questions one by one and them Model 2 53 questions one by one
+# Sequential execution: Model 1 53 questions one by one and them Model 2 53 questions one by one89
 
 # Goal: Build a research agent that get information from multiple sources, analyzes findings and produce comprehensive answers
 # Use the GAIA benchmark to determine if the agent is doing that or not and measure how well
@@ -119,6 +119,7 @@ console = Console()
 schema_string = json.dumps(schema_template)
 console.print(f"\nJSON schema_string: {schema_string}", style="gold1", highlight=False)
 
+# First model
 vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
 if not vllm_server_fqdn:
     raise ValueError("ERROR: VLLM_SERVER_FQDN environment variable is not set.")
@@ -126,6 +127,7 @@ vllm_url = f"http://{vllm_server_fqdn}:8000/v1"
 MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
 MODEL_TEMPERATURE = 0.0
 
+# Second model
 ollama_server_fqdn = os.getenv("OLLAMA_SERVER_FQDN")
 if not ollama_server_fqdn:
     raise ValueError("ERROR: OLLAMA_SERVER_FQDN environment variable is not set.")
@@ -145,8 +147,8 @@ SYSTEM_PROMPT += "Output plain text only. Do not use emojis or emoticons. "
 SYSTEM_PROMPT += f"Output ONLY a valid JSON object matching this schema: {schema_string}. "
 SYSTEM_PROMPT += "Do not include markdown blocks or schema keywords like 'properties' in your final output."
 
-DATASET_ID = "gaia-benchmark/GAIA"
 SUBSET = "2023_level1"
+DATASET_ID = "gaia-benchmark/GAIA"
 
 console.print(f"\nLoading GAIA dataset, Level 1, validation split", style="gold1", highlight=False)
 level1_problems = load_dataset(DATASET_ID, SUBSET, split="validation")
@@ -160,15 +162,18 @@ sample = level1_problems[0]
 for key, value in sample.items():
     content_preview = str(value)[:200].replace('\n', ' ')
     print(f"{key}: {content_preview}...")
-
 print()
+
+# ----------------------------------
+# Inference 1 question, first model
+# ----------------------------------
+
 
 # Inferencia simple
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
-
 console.print(f"Test simple inference:", style="gold1")
 
-# List of dictionaries. Should be named 'messages' for alignment with the examples in OpenAI's SDK specification 
+# List of dictionaries. 
 messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": 'Based strictly on your underlying architecture, are you a standard Dense model or a Mixture-of-Experts (MoE) model? Set "is_solvable" to true, and output strictly the word "Dense" or "MoE" in the final_answer.'}
@@ -207,11 +212,9 @@ print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_t
 console.print(f"Time: {execution_time_seconds:.2f} seconds\n", style="cyan", highlight=False)
 print()
 
-
-# ---------------------------
-# Second model
-# ---------------------------
-
+# ----------------------------------
+# Inference 1 question, second model
+# ----------------------------------
 
 # Inferencia simple
 client_bis = OpenAI(base_url=ollama_url, api_key="EMPTY") 
