@@ -1,35 +1,43 @@
 # Loads GAIA dataset Level 1 questions and evaluate two OpenAI-compatible LLMs 
 # Report each model’s accuracy and token-processing speed
-# Sequential execution: Model 1 53 questions one by one and them Model 2 53 questions one by one89
+# Sequential execution: LLM-1 does all questions one by one, them LLM-2 does all 53 questions one by one
 
-# Goal: Build a research agent that get information from multiple sources, analyzes findings and produce comprehensive answers
-# Use the GAIA benchmark to determine if the agent is doing that or not and measure how well
 
-# Loads the GAIA (General AI Assistants) dataset from Meta and Hugging Face
+# GAIA (General AI Assistants) dataset from Meta and Hugging Face
 # 'Convinces' the LLM to reply using data structures (JSON)
-# OpenAI’s Chat Completions API 
-# Reinach 04/Sep/2026
+# OpenAI’s Chat Completions API
 
+import os
+import re
+import json
 import time
-import os, re, json
 from openai import OpenAI
 from pydantic import BaseModel
 from rich.console import Console
 from datasets import load_dataset
 
-# Define data structure (named GaiaOutput) for the LLM reply, using pydantic 
+# Using pydantic, define a data structure (class GaiaOutput) for the LLM reply
+# Class GaiaOutput(CamelCase), variables = name of each data field, type of each variable = type of each data field
 class GaiaOutput(BaseModel):
     is_solvable: bool
     unsolvable_reason: str = ""
     final_answer: str = ""
 
-# Define the same data, structured in JSON format, to be able to tell the LLM which format I expect to get
+# Using JSON format, define the same data structure, to be able to tell the LLM which format I expect to get
+# Dictionary gata_output_json_schema (snake_case), keys = names of each data field, values = tipe of each data field
 # In JSON terminology, the python data type bool is called a "boolean"
-schema_template = {
+gaia_output_json_schema = {
     "is_solvable": "boolean",
     "unsolvable_reason": "string",
     "final_answer": "string"
 }
+
+# Answer validation
+def is_correct(prediction: str | None, answer: str) -> bool:
+    """Check exact match between prediction and answer (case-insensitive)."""
+    if prediction is None:
+        return False
+    return prediction.strip().lower() == answer.strip().lower()
 
 """
 # Coroutine (function defined with async def) that sends a GAIA problem to the model and receives the structured reply
@@ -59,12 +67,6 @@ async def solve_problem(model: str, question: str) -> GaiaOutput:
         return GaiaOutput.model_validate_json(content)
 """
 
-# Answer validation
-def is_correct(prediction: str | None, answer: str) -> bool:
-    """Check exact match between prediction and answer (case-insensitive)."""
-    if prediction is None:
-        return False
-    return prediction.strip().lower() == answer.strip().lower()
 
 """
 # Evaluate a single problem-model pair and return result
@@ -116,8 +118,8 @@ async def run_experiment(
 
 # Main
 console = Console()
-schema_string = json.dumps(schema_template)
-console.print(f"\nJSON schema_string: {schema_string}", style="gold1", highlight=False)
+gaia_output_string = json.dumps(gaia_output_json_schema)
+console.print(f"\nJSON schema_string: {gaia_output_string}", style="gold1", highlight=False)
 
 # First model
 vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
@@ -144,7 +146,7 @@ SYSTEM_PROMPT += "your number; also don’t use units such as $ or a percent sig
 SYSTEM_PROMPT += "neither abbreviations (e.g., for cities), and write the digits in plain text unless specified otherwise. If you are asked for a comma-separated "
 SYSTEM_PROMPT += "list, apply the above rules depending on whether the element is a number or a string."
 SYSTEM_PROMPT += "Output plain text only. Do not use emojis or emoticons. "
-SYSTEM_PROMPT += f"Output ONLY a valid JSON object matching this schema: {schema_string}. "
+SYSTEM_PROMPT += f"Output ONLY a valid JSON object matching this schema: {gaia_output_string}. "
 SYSTEM_PROMPT += "Do not include markdown blocks or schema keywords like 'properties' in your final output."
 
 SUBSET = "2023_level1"
@@ -168,15 +170,16 @@ print()
 # Inference 1 question, first model
 # ----------------------------------
 
+question = 'Based strictly on your underlying architecture, are you a standard Dense model or a Mixture-of-Experts (MoE) model? Set "is_solvable" to true, and output strictly the word "Dense" or "MoE" in the final_answer.'
 
 # Inferencia simple
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
-console.print(f"Test simple inference:", style="gold1")
+console.print(f"Test simple inference with the first model:", style="gold1")
 
 # List of dictionaries. 
 messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": 'Based strictly on your underlying architecture, are you a standard Dense model or a Mixture-of-Experts (MoE) model? Set "is_solvable" to true, and output strictly the word "Dense" or "MoE" in the final_answer.'}
+        {"role": "user", "content": question}
     ]
 
 console.print("Question:", style="white", highlight=False)
@@ -205,8 +208,8 @@ final_response = GaiaOutput.model_validate(dict_response)
 end_time = time.time()
 execution_time_seconds = (end_time - start_time)
 
-print(f"Response: {clean_response}")
-print(f"Response, extrated from JSON using Pydantic: {final_response}")
+# print(f"Response: {clean_response}")
+# print(f"Response, extrated from JSON using Pydantic: {final_response}")
 print(f"Answer, extrated from JSON using Pydantic: {final_response.final_answer}")
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
 console.print(f"Time: {execution_time_seconds:.2f} seconds\n", style="cyan", highlight=False)
@@ -253,8 +256,8 @@ final_response = GaiaOutput.model_validate(dict_response)
 end_time = time.time()
 execution_time_seconds = (end_time - start_time)
 
-print(f"Response: {clean_response}")
-print(f"Response, extrated from JSON using Pydantic: {final_response}")
+# print(f"Response: {clean_response}")
+# print(f"Response, extrated from JSON using Pydantic: {final_response}")
 print(f"Answer, extrated from JSON using Pydantic: {final_response.final_answer}")
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
 console.print(f"Time: {execution_time_seconds:.2f} seconds\n", style="cyan", highlight=False)
