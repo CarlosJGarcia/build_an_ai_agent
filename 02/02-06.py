@@ -24,7 +24,7 @@ class GaiaOutput(BaseModel):
     final_answer: str = ""
 
 # Using JSON format, define the same data structure, to be able to tell the LLM which format I expect to get
-# Dictionary gata_output_json_schema (snake_case), keys = names of each data field, values = tipe of each data field
+# Dictionary gaia_output_json_schema (snake_case), keys = names of each data field, values = type of each data field
 # In JSON terminology, the python data type bool is called a "boolean"
 gaia_output_json_schema = {
     "is_solvable": "boolean",
@@ -170,7 +170,7 @@ print()
 # Inference single question, first model
 # --------------------------------------
 
-question = 'Based strictly on your underlying architecture, are you a standard Dense model or a Mixture-of-Experts (MoE) model? Set "is_solvable" to true, and output strictly the word "Dense" or "MoE" in the final_answer.'
+question = 'Based strictly on your underlying architecture, are you a standard Dense model or a Mixture-of-Experts (MoE) model? Set "is_solvable" to true and output strictly the word "Dense" or "MoE" in the final_answer.'
 
 # Inferencia simple
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
@@ -189,7 +189,7 @@ for item in messages:
 """
     
 start_time = time.time()
-response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
+response = client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)
 clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
 
 # Sanitizer. Regex that catches any variation of a stuttered opening brace ({{, {"{, etc.) and flattens it.
@@ -236,7 +236,7 @@ for item in messages:
 """
 
 start_time = time.time()
-response = client_bis.chat.completions.create(model=BIS_MODEL_NAME, messages=messages)
+response = client_bis.chat.completions.create(model=BIS_MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)
 clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
 
 # Sanitizer. Regex that catches any variation of a stuttered opening brace ({{, {"{, etc.) and flattens it.
