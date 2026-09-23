@@ -264,21 +264,20 @@ print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_t
 # console.print(f"Time: {execution_time_seconds:.2f} seconds\n", style="cyan", highlight=False)
 speed = response.usage.total_tokens / execution_time_seconds
 console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second", style="cyan", highlight=False)
-
 print()
 
+# Trim dataset for quick testing. Set to None or len(level1_problems) for full dataset
+gaia_problems_subset = level1_problems.select(range(3))  # First 3 problems
 
-
-
-# ==========================================
-# Full GAIA Level 1 Validation Loop
-# ==========================================
+# ==============================
+# GAIA Level 1 Loop, first model
+# ==============================
 correct_answers = 0
-total_problems = len(level1_problems)
-console.print(f"\nStarting evaluation of all {total_problems} GAIA level 1 problems", style="gold1", highlight=False)
+total_problems = len(gaia_problems_subset)
+console.print(f"Starting evaluation of {total_problems} GAIA level 1 problems", style="gold1", highlight=False)
 
 
-for i, problem in enumerate(level1_problems, 1):
+for i, problem in enumerate(gaia_problems_subset, 1):
     gaia_question = problem["Question"]
     expected_answer = problem["Final answer"]
 
@@ -344,11 +343,11 @@ print()
 # Full GAIA Level 1 Validation Loop, second model
 # ===============================================
 correct_answers = 0
-total_problems = len(level1_problems)
+total_problems = len(gaia_problems_subset)
 console.print(f"\nStarting evaluation of all {total_problems} GAIA level 1 problems with the second model", style="gold1", highlight=False)
 
 
-for i, problem in enumerate(level1_problems, 1):
+for i, problem in enumerate(gaia_problems_subset, 1):
     gaia_question = problem["Question"]
     expected_answer = problem["Final answer"]
 
