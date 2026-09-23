@@ -166,15 +166,15 @@ for key, value in sample.items():
     print(f"{key}: {content_preview}...")
 print()
 
-# ----------------------------------
-# Inference 1 question, first model
-# ----------------------------------
+# --------------------------------------
+# Inference single question, first model
+# --------------------------------------
 
 question = 'Based strictly on your underlying architecture, are you a standard Dense model or a Mixture-of-Experts (MoE) model? Set "is_solvable" to true, and output strictly the word "Dense" or "MoE" in the final_answer.'
 
 # Inferencia simple
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
-console.print(f"Test simple inference with the first model:", style="gold1")
+console.print(f"Test simple inference with the first model ({MODEL_NAME}):", style="gold1", highlight=False)
 
 # List of dictionaries. 
 messages = [
@@ -182,10 +182,12 @@ messages = [
         {"role": "user", "content": question}
     ]
 
-console.print("Question:", style="white", highlight=False)
+console.print(f"Question: {question}", style="white", highlight=False)
+"""
 for item in messages:
     console.print(f"{item}", style="white", highlight=False)
-
+"""
+    
 start_time = time.time()
 response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
 clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
@@ -212,27 +214,26 @@ execution_time_seconds = (end_time - start_time)
 # print(f"Response, extrated from JSON using Pydantic: {final_response}")
 print(f"Answer, extrated from JSON using Pydantic: {final_response.final_answer}")
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
-console.print(f"Time: {execution_time_seconds:.2f} seconds\n", style="cyan", highlight=False)
+#console.print(f"Time: {execution_time_seconds:.2f} seconds\n", style="cyan", highlight=False)
+speed = response.usage.total_tokens / execution_time_seconds
+console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second", style="cyan", highlight=False)
 print()
 
-# ----------------------------------
-# Inference 1 question, second model
-# ----------------------------------
+
+# ---------------------------------------
+# Inference single question, second model
+# ---------------------------------------
 
 # Inferencia simple
 client_bis = OpenAI(base_url=ollama_url, api_key="EMPTY") 
 
-console.print(f"Test simple inference with the second model:", style="gold1")
+console.print(f"Test simple inference with the second model ({BIS_MODEL_NAME}):", style="gold1", highlight=False)
 
-# List of dictionaries. Should be named 'messages' for alignment with the examples in OpenAI's SDK specification 
-messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": 'Based strictly on your underlying architecture, are you a standard Dense model or a Mixture-of-Experts (MoE) model? Set "is_solvable" to true, and output strictly the word "Dense" or "MoE" in the final_answer.'}
-    ]
-
-console.print("Question:", style="white", highlight=False)
+console.print(f"Question: {question}", style="white", highlight=False)
+"""
 for item in messages:
     console.print(f"{item}", style="white", highlight=False)
+"""
 
 start_time = time.time()
 response = client_bis.chat.completions.create(model=BIS_MODEL_NAME, messages=messages)
@@ -260,7 +261,10 @@ execution_time_seconds = (end_time - start_time)
 # print(f"Response, extrated from JSON using Pydantic: {final_response}")
 print(f"Answer, extrated from JSON using Pydantic: {final_response.final_answer}")
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
-console.print(f"Time: {execution_time_seconds:.2f} seconds\n", style="cyan", highlight=False)
+# console.print(f"Time: {execution_time_seconds:.2f} seconds\n", style="cyan", highlight=False)
+speed = response.usage.total_tokens / execution_time_seconds
+console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second", style="cyan", highlight=False)
+
 print()
 
 
