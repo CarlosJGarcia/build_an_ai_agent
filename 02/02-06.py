@@ -2,7 +2,6 @@
 # Report each model’s accuracy and token-processing speed
 # Sequential execution: LLM-1 does all questions one by one, them LLM-2 does all 53 questions one by one
 
-
 # GAIA (General AI Assistants) dataset from Meta and Hugging Face
 # 'Convinces' the LLM to reply using data structures (JSON)
 # OpenAI’s Chat Completions API
@@ -267,14 +266,14 @@ console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} t
 print()
 
 # Trim dataset for quick testing. Set to None or len(level1_problems) for full dataset
-gaia_problems_subset = level1_problems.select(range(3))  # First 3 problems
+TOTAL_QUESTIONS = 3
+gaia_problems_subset = level1_problems.select(range(TOTAL_QUESTIONS))  # First (TOTAL_QUESTIONS) problems
 
 # ==============================
 # GAIA Level 1 Loop, first model
 # ==============================
 correct_answers = 0
-total_problems = len(gaia_problems_subset)
-console.print(f"Starting evaluation of {total_problems} GAIA level 1 problems", style="gold1", highlight=False)
+console.print(f"Starting evaluation of {TOTAL_QUESTIONS} GAIA level 1 problems", style="gold1", highlight=False)
 
 
 for i, problem in enumerate(gaia_problems_subset, 1):
@@ -286,7 +285,7 @@ for i, problem in enumerate(gaia_problems_subset, 1):
         {"role": "user", "content": gaia_question}
     ]
     
-    console.print(f"Problem {i}/{total_problems}:", style="white", highlight=False)
+    console.print(f"Problem {i}/{TOTAL_QUESTIONS}:", style="white", highlight=False)
     
     start_time = time.time()
     try:
@@ -333,7 +332,7 @@ for i, problem in enumerate(gaia_problems_subset, 1):
 
 # Display final score
 console.print(f"\nEvaluation results:", style="gold1", highlight=False)
-print(f"Correct answers = Accuracy {correct_answers} / {total_problems} ({(correct_answers / total_problems * 100):.0f}%)")
+print(f"Correct answers = Accuracy {correct_answers} / {TOTAL_QUESTIONS} ({(correct_answers / TOTAL_QUESTIONS * 100):.0f}%)")
 print()
 
 
@@ -343,8 +342,7 @@ print()
 # Full GAIA Level 1 Validation Loop, second model
 # ===============================================
 correct_answers = 0
-total_problems = len(gaia_problems_subset)
-console.print(f"\nStarting evaluation of all {total_problems} GAIA level 1 problems with the second model", style="gold1", highlight=False)
+console.print(f"\nStarting evaluation of all {TOTAL_QUESTIONS} GAIA level 1 problems with the second model", style="gold1", highlight=False)
 
 
 for i, problem in enumerate(gaia_problems_subset, 1):
@@ -356,7 +354,7 @@ for i, problem in enumerate(gaia_problems_subset, 1):
         {"role": "user", "content": gaia_question}
     ]
     
-    console.print(f"Problem {i}/{total_problems}:", style="white", highlight=False)
+    console.print(f"Problem {i}/{TOTAL_QUESTIONS}:", style="white", highlight=False)
     
     start_time = time.time()
     try:
@@ -403,5 +401,5 @@ for i, problem in enumerate(gaia_problems_subset, 1):
 
 # Display final score
 console.print(f"\nEvaluation results with the second model:", style="gold1", highlight=False)
-print(f"Correct answers = Accuracy {correct_answers} / {total_problems} ({(correct_answers / total_problems * 100):.0f}%)")
+print(f"Correct answers = Accuracy {correct_answers} / {TOTAL_QUESTIONS} ({(correct_answers / TOTAL_QUESTIONS * 100):.0f}%)")
 print()
