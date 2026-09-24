@@ -32,8 +32,6 @@ schema_template = {
     "final_answer": "string"
 }
 
-print("\nTodo bien\n")
-
 
 """
 # Coroutine (function defined with async def) that sends a GAIA problem to the model and receives the structured reply
@@ -121,12 +119,13 @@ async def run_experiment(
     return results
 """
     
-"""
+
 # Main
 console = Console()
 schema_string = json.dumps(schema_template)
-console.print(f"\npytJSON schema_string: {schema_string}", style="gold1", highlight=False)
+# console.print(f"\nJSON schema_string: {schema_string}", style="gold1", highlight=False)
 
+# First model
 vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
 if not vllm_server_fqdn:
     raise ValueError("ERROR: VLLM_SERVER_FQDN environment variable is not set.")
@@ -146,23 +145,27 @@ SYSTEM_PROMPT += "Output plain text only. Do not use emojis or emoticons. "
 SYSTEM_PROMPT += f"Output ONLY a valid JSON object matching this schema: {schema_string}. "
 SYSTEM_PROMPT += "Do not include markdown blocks or schema keywords like 'properties' in your final output."
 
-DATASET_ID = "gaia-benchmark/GAIA"
 SUBSET = "2023_level1"
+DATASET_ID = "gaia-benchmark/GAIA"
 
-console.print(f"\nLoading GAIA dataset, Level 1, validation split", style="gold1", highlight=False)
+# Load GAIA Dataset, Level 1, validation split
+console.print(f"\nLoading GAIA dataset", style="gold1", highlight=False)
 level1_problems = load_dataset(DATASET_ID, SUBSET, split="validation")
-console.print(f"Dataset loaded successfully", style="gold1")
-print(f"Number of problems: {len(level1_problems)}")
-print(f"Dataset structure: {level1_problems}")
+console.print(f"Dataset loaded successfully. Number of problems: {len(level1_problems)}", style="gold1", highlight = False)
 
-# Inspecting the first item in Level 1, 'validation' split
+"""
+# Inspect the first item in the dataset
 console.print(f"\nDataset sample item:", style="gold1")
 sample = level1_problems[0] 
 for key, value in sample.items():
     content_preview = str(value)[:200].replace('\n', ' ')
     print(f"{key}: {content_preview}...")
+"""
 
 print()
+
+"""
+"""
 
 # Inferencia simple
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
@@ -180,7 +183,7 @@ for item in messages:
     console.print(f"{item}", style="white", highlight=False)
 
 start_time = time.time()
-response = client.chat.completions.create(model=MODEL_NAME, messages=messages)
+response = client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)
 clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
 
 # Sanitizer. Regex that catches any variation of a stuttered opening brace ({{, {"{, etc.) and flattens it.
@@ -208,7 +211,7 @@ print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_t
 console.print(f"Time: {execution_time_seconds:.2f} seconds\n", style="cyan", highlight=False)
 print()
 
-
+"""
 # Test inference using the GAIA dataset sample
 console.print(f"Inference with GAIA sample:", style="gold1")
 
