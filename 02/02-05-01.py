@@ -24,7 +24,7 @@ SYSTEM_PROMPT = "You are a helpful assistant. Output plain text only. Do not use
 client = AsyncOpenAI(base_url=vllm_url, api_key="EMPTY") 
 
 # Coroutine (function defined with async def) for the three simultaneous questions
-async def get_response(prompt: str):
+async def inference(prompt: str):
     messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}]
     response = await client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)
     clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
@@ -35,13 +35,13 @@ async def get_response(prompt: str):
 # Wrap the execution block in a main function. This not needed in Jupyter Notebooks but required in .py for asyncio's "await" to work
 async def main():
 
-    # Execute three requests/questions concurrently
+    # Prepare the three questions questions
     start_time = time.time()
     prompts = ["What is 2 + 2?", "What is the capital of Japan?", "Who wrote Romeo and Juliet?"]
     console.print(f"\nAsking {len(prompts)} questions concurrently", style="gold1", highlight=False)
 
-    # Create a list with the three coroutine calls
-    tasks = [get_response(p) for p in prompts]
+    # Create a list with the three coroutine calls, each one with a different question as parameter
+    tasks = [inference(p) for p in prompts]
 
     # Execute the three coroutines concurrently and wait until all three are completed
     results = await asyncio.gather(*tasks)

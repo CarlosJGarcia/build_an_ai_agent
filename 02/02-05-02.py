@@ -20,16 +20,15 @@ MODEL_TEMPERATURE = 0.0
 MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
 SYSTEM_PROMPT = "You are a helpful assistant. Output plain text only. Do not use emojis or emoticons. "
 
-# Limit to 10 concurrent requests
-CONCURRENT = 10
-semaphore = asyncio.Semaphore(CONCURRENT)
+TOTAL_QUESTIONS = 50          # Limit to 50 requests
+CONCURRENT_QUESTIONS = 10     # Limit to 10 concurrent requests
 
-# Initialize the async client
+# Initialize the semaphore and the async client
+semaphore = asyncio.Semaphore(CONCURRENT_QUESTIONS)
 client = AsyncOpenAI(base_url=vllm_url, api_key="EMPTY") 
 
-
-# Coroutine (function defined with async def) for the ten simulatenous questions
-async def call_llm(prompt: str):
+# Coroutine (function defined with async def) for the multiple simulatenous questions
+async def inference(prompt: str):
     async with semaphore:
         messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}]
         response = await client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)  # Automatic retry with exponential backoff
@@ -37,16 +36,15 @@ async def call_llm(prompt: str):
 
         return clean_response
 
-
 # Wrap the execution block in a main function. This not needed in Jupyter Notebooks but required in .py for asyncio's "await" to work
 async def main():
 
   
-    # Execute three requests/questions concurrently 100 concurrent tasks,with a concurrency limit of at a time
+    # Execute requests/questions concurrently, with a concurrency limit
     start_time = time.time()
-    prompts = [f"What is {i} + {i}?" for i in range(100)]
-    console.print(f"\nAsking {len(prompts)} questions concurrently with a concurrency limit of {CONCURRENT} at a time", style="gold1", highlight=False)
-    tasks = [call_llm(p) for p in prompts]
+    prompts = [f"What is {i} + {i}?" for i in range(TOTAL_QUESTIONS)]
+    console.print(f"\nAsking {TOTAL_QUESTIONS} questions concurrently with a concurrency limit of {CONCURRENT_QUESTIONS} at a time", style="gold1", highlight=False)
+    tasks = [inference(p) for p in prompts]
     results = await asyncio.gather(*tasks, return_exceptions=True)
     end_time = time.time()
     execution_time_minutes = (end_time - start_time) / 60
