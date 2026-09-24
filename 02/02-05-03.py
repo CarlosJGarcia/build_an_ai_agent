@@ -21,10 +21,10 @@ vllm_url = f"http://{vllm_server_fqdn}:8000/v1"
 
 MODEL_TEMPERATURE = 0.0
 MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
-SYSTEM_PROMPT = "You are a helpful assistant. Output plain text only. Do not use emojis or emoticons. "
+SYSTEM_PROMPT = "You are a helpful assistant. Output plain text only. Do not use emojis or emoticons."
 
-TOTAL_QUESTIONS = 15          # Limit to 50 requests
-CONCURRENT_QUESTIONS = 10     # Limit to 10 concurrent requests
+TOTAL_QUESTIONS = 15          
+CONCURRENT_QUESTIONS = 10    
 
 # Initialize the semaphore and the async client
 semaphore = asyncio.Semaphore(CONCURRENT_QUESTIONS)
@@ -34,7 +34,7 @@ client = AsyncOpenAI(base_url=vllm_url, api_key="EMPTY")
 async def inference(prompt: str):
     async with semaphore:
         messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}]
-        response = await client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)  # Automatic retry with exponential backoff
+        response = await client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)  
         clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
 
         return clean_response
