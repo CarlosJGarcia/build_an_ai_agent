@@ -1,33 +1,39 @@
-# Long-term goal: Build a research agent that gets information from multiple sources, analyzes findings and produces comprehensive answers
-# Evaluation: Use the GAIA benchmark to determine if the agent is doing that or not and measure how well
-
-# Loads the GAIA (General AI Assistants) dataset from Meta and Hugging Face
+# Loads GAIA dataset Level 1 questions and evaluate twos OpenAI-compatible LLMs 
+# Report each model’s accuracy and token-processing speed
+# Concurrent execution
+# GAIA (General AI Assistants) dataset from Meta and Hugging Face
 # 'Convinces' the LLM to reply using data structures (JSON)
-# OpenAI’s Chat Completions API 
-# Reinach 04/Sep/2026
+# OpenAI’s Chat Completions API
+# Reinach 24/Sep/2026
 
-import asyncio
-
+import os
+import re
+import json
 import time
-import os, re, json
+import asyncio
 from openai import OpenAI
 from pydantic import BaseModel
 from rich.console import Console
 from datasets import load_dataset
 
-# Define data structure (named GaiaOutput) for the LLM reply, using pydantic 
+# Using pydantic, define a data structure (class GaiaOutput) for the LLM reply
+# Class GaiaOutput(CamelCase), variables = name of each data field, type of each variable = type of each data field
 class GaiaOutput(BaseModel):
     is_solvable: bool
     unsolvable_reason: str = ""
     final_answer: str = ""
 
-# Define the same data, structured in JSON format, to be able to tell the LLM which format I expect to get
+# Using JSON format, define the same data structure, to be able to tell the LLM which format I expect to get
+# Dictionary gaia_output_json_schema (snake_case), keys = names of each data field, values = type of each data field
 # In JSON terminology, the python data type bool is called a "boolean"
 schema_template = {
     "is_solvable": "boolean",
     "unsolvable_reason": "string",
     "final_answer": "string"
 }
+
+print("\nTodo bien\n")
+
 
 """
 # Coroutine (function defined with async def) that sends a GAIA problem to the model and receives the structured reply
@@ -56,6 +62,7 @@ async def solve_problem(model: str, question: str) -> GaiaOutput:
             )
         return GaiaOutput.model_validate_json(content)
 """
+
 
 # Answer validation
 def is_correct(prediction: str | None, answer: str) -> bool:
@@ -114,7 +121,7 @@ async def run_experiment(
     return results
 """
     
-
+"""
 # Main
 console = Console()
 schema_string = json.dumps(schema_template)
@@ -327,5 +334,5 @@ for i, problem in enumerate(level1_problems, 1):
 console.print(f"\nEvaluation results:", style="gold1", highlight=False)
 print(f"Correct answers = Accuracy {correct_answers} / {total_problems} ({(correct_answers / total_problems * 100):.0f}%)")
 print()
-
+"""
 
