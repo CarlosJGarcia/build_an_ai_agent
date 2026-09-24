@@ -35,7 +35,7 @@ async def inference(prompt: str):
 # Wrap the execution block in a main function. This not needed in Jupyter Notebooks but required in .py for asyncio's "await" to work
 async def main():
 
-    # Prepare the three questions questions
+    # Prepare the three questions
     start_time = time.time()
     prompts = ["What is 2 + 2?", "What is the capital of Japan?", "Who wrote Romeo and Juliet?"]
     console.print(f"\nAsking {len(prompts)} questions concurrently", style="gold1", highlight=False)

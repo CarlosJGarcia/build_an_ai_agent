@@ -1,13 +1,15 @@
-# Sends three questions concurrently to an OpenAI-compatible LLM server. It prints each question, its answer and the total execution time
+# Sends multiple questions concurrently to an OpenAI-compatible LLM server with a progress bar.
 # OpenAI -> Chat Completions
 # AsyncOpenAI -> Concurrent Chat Completion
 # Asyncio -> Concurrency framework for I/O-bound tasks like DB queries or LLM inference
+# Rich Progress -> Real-time progress tracking
 
 import os
 import time
 import asyncio
 from openai import AsyncOpenAI
 from rich.console import Console
+from rich.progress import Progress, SpinnerColumn, TextColumn
 
 console = Console()
 
@@ -27,7 +29,7 @@ CONCURRENT_QUESTIONS = 10     # Limit to 10 concurrent requests
 semaphore = asyncio.Semaphore(CONCURRENT_QUESTIONS)
 client = AsyncOpenAI(base_url=vllm_url, api_key="EMPTY") 
 
-# Coroutine (function defined with async def) for the multiple simulatenous questions
+# Coroutine (function defined with async def) for the multiple simultaneous questions
 async def inference(prompt: str):
     async with semaphore:
         messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}]
@@ -39,17 +41,22 @@ async def inference(prompt: str):
 # Wrap the execution block in a main function. This not needed in Jupyter Notebooks but required in .py for asyncio's "await" to work
 async def main():
 
-  
     # Create a list with all the questions
     start_time = time.time()
     prompts = [f"What is {i} + {i}?" for i in range(TOTAL_QUESTIONS)]
     console.print(f"\nAsking {TOTAL_QUESTIONS} questions concurrently with a concurrency limit of {CONCURRENT_QUESTIONS} at a time", style="gold1", highlight=False)
 
-    # Create a list with all the coroutine calls, each one with a different question as parameter
-    tasks = [inference(p) for p in prompts]
+    # Execute all coroutines concurrently with a progress bar
+    with Progress() as progress:
+        progress_task = progress.add_task(f"[cyan]Processing {TOTAL_QUESTIONS} questions...", total=TOTAL_QUESTIONS)
 
-    # Execute all the coroutines concurrently and wait until all are completed
-    results = await asyncio.gather(*tasks, return_exceptions=True)
+        async def tracked_inference(prompt: str):
+            result = await inference(prompt)
+            progress.update(progress_task, advance=1)
+            return result
+
+        tasks = [tracked_inference(p) for p in prompts]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
 
     end_time = time.time()
     execution_time_minutes = (end_time - start_time) / 60
