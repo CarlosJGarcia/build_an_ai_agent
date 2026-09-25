@@ -26,11 +26,12 @@ class GaiaOutput(BaseModel):
 # Using JSON format, define the same data structure, to be able to tell the LLM which format I expect to get
 # Dictionary gaia_output_json_schema (snake_case), keys = names of each data field, values = type of each data field
 # In JSON terminology, the python data type bool is called a "boolean"
-schema_template = {
+gaia_output_json_schema = {
     "is_solvable": "boolean",
     "unsolvable_reason": "string",
     "final_answer": "string"
 }
+
 
 
 """
@@ -122,8 +123,8 @@ async def run_experiment(
 
 # Main
 console = Console()
-schema_string = json.dumps(schema_template)
-# console.print(f"\nJSON schema_string: {schema_string}", style="gold1", highlight=False)
+gaia_output_string = json.dumps(gaia_output_json_schema)
+# console.print(f"\nJSON schema_string: {gaia_output_string}", style="gold1", highlight=False)
 
 # First model
 vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
@@ -142,16 +143,16 @@ SYSTEM_PROMPT += "your number; also don’t use units such as $ or a percent sig
 SYSTEM_PROMPT += "neither abbreviations (e.g., for cities), and write the digits in plain text unless specified otherwise. If you are asked for a comma-separated "
 SYSTEM_PROMPT += "list, apply the above rules depending on whether the element is a number or a string."
 SYSTEM_PROMPT += "Output plain text only. Do not use emojis or emoticons. "
-SYSTEM_PROMPT += f"Output ONLY a valid JSON object matching this schema: {schema_string}. "
+SYSTEM_PROMPT += f"Output ONLY a valid JSON object matching this schema: {gaia_output_string}. "
 SYSTEM_PROMPT += "Do not include markdown blocks or schema keywords like 'properties' in your final output."
 
 SUBSET = "2023_level1"
 DATASET_ID = "gaia-benchmark/GAIA"
 
-# Load GAIA Dataset, Level 1, validation split
+# Load GAIA Dataset, subset Level 1, validation split
 console.print(f"\nLoading GAIA dataset", style="gold1", highlight=False)
-level1_problems = load_dataset(DATASET_ID, SUBSET, split="validation")
-console.print(f"Dataset loaded successfully. Number of problems: {len(level1_problems)}", style="gold1", highlight = False)
+gaia_level1_problems = load_dataset(DATASET_ID, SUBSET, split="validation")
+console.print(f"Dataset loaded successfully. Number of problems: {len(gaia_level1_problems)}", style="gold1", highlight = False)
 
 """
 # Inspect the first item in the dataset
@@ -167,20 +168,24 @@ print()
 """
 """
 
-# Inferencia simple
-client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
-
+# Inferencia simple con respuesta en formato JSON
 console.print(f"Test simple inference:", style="gold1")
 
-# List of dictionaries. Should be named 'messages' for alignment with the examples in OpenAI's SDK specification 
+client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
+
+question = "What is the capital of France?"
+# List of dictionaries. Named 'messages' for alignment with OpenAI's SDK specification 
 messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": "What is the capital of France?"}
+        {"role": "user", "content": question}
     ]
 
+"""
 console.print("Question:", style="white", highlight=False)
 for item in messages:
     console.print(f"{item}", style="white", highlight=False)
+"""
+console.print(f"Question: {question}", style="white", highlight=False)    
 
 start_time = time.time()
 response = client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)
@@ -206,9 +211,12 @@ execution_time_seconds = (end_time - start_time)
 
 print(f"Response: {clean_response}")
 print(f"Response, extrated from JSON using Pydantic: {final_response}")
-print(f"Answer, extrated from JSON using Pydantic: {final_response.final_answer}")
-print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
-console.print(f"Time: {execution_time_seconds:.2f} seconds\n", style="cyan", highlight=False)
+# print(f"Answer, extrated from JSON using Pydantic: {final_response.final_answer}")
+print(f"Answer: {final_response.final_answer}")
+# print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
+# console.print(f"Time: {execution_time_seconds:.2f} seconds\n", style="cyan", highlight=False)
+speed = response.usage.prompt_tokens / execution_time_seconds
+console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
 print()
 
 """
