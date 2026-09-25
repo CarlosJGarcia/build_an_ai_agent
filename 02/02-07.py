@@ -1,8 +1,8 @@
-# Loads GAIA dataset Level 1 questions and evaluate twos OpenAI-compatible LLMs 
+# Load GAIA dataset Level 1 questions and evaluate two OpenAI-compatible LLMs 
 # Report each model’s accuracy and token-processing speed
-# Concurrent execution
+# Concurrent inference requests
 # GAIA (General AI Assistants) dataset from Meta and Hugging Face
-# 'Convinces' the LLM to reply using data structures (JSON)
+# 'Convinces' the LLM to reply using data structures (JSON - JavaScript Object Notation)
 # OpenAI’s Chat Completions API
 # Reinach 24/Sep/2026
 
@@ -23,7 +23,7 @@ class GaiaOutput(BaseModel):
     unsolvable_reason: str = ""
     final_answer: str = ""
 
-# Using JSON format, define the same data structure, to be able to tell the LLM which format I expect to get
+# Using JSON format, define the same data structure, to be able to tell the LLM in which format I expect to get the response
 # Dictionary gaia_output_json_schema (snake_case), keys = names of each data field, values = type of each data field
 # In JSON terminology, the python data type bool is called a "boolean"
 gaia_output_json_schema = {
@@ -121,12 +121,20 @@ async def run_experiment(
 """
     
 
-# Main
+# ==========================================
+# Main - Prepares GAIA system prompt
 console = Console()
-gaia_output_string = json.dumps(gaia_output_json_schema)
-# console.print(f"\nJSON schema_string: {gaia_output_string}", style="gold1", highlight=False)
 
-# First model
+
+# Dataset. Load GAIA Dataset, subset Level 1, validation split
+SUBSET = "2023_level1"
+DATASET_ID = "gaia-benchmark/GAIA"
+console.print(f"\nLoading GAIA dataset", style="gold1", highlight=False)
+gaia_level1_problems = load_dataset(DATASET_ID, SUBSET, split="validation")
+console.print(f"Dataset loaded successfully. Number of problems: {len(gaia_level1_problems)}", style="gold1", highlight = False)
+
+
+# Model. First model
 vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
 if not vllm_server_fqdn:
     raise ValueError("ERROR: VLLM_SERVER_FQDN environment variable is not set.")
@@ -134,7 +142,11 @@ vllm_url = f"http://{vllm_server_fqdn}:8000/v1"
 MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
 MODEL_TEMPERATURE = 0.0
 
-# GAIA’s standard evaluation prompt, instructs the model to provide answers in a consistent format
+
+# Prompt engineering. GAIA’s standard evaluation prompt, instructs the model to provide answers in a consistent format
+gaia_output_string = json.dumps(gaia_output_json_schema)
+# console.print(f"\nJSON schema_string: {gaia_output_string}", style="gold1", highlight=False)
+
 SYSTEM_PROMPT = "You are a general AI assistant. I will ask you a question. First, determine if you can solve this problem with your current capabilities "
 SYSTEM_PROMPT += "and set “is_solvable” accordingly. If you can solve it, set “is_solvable” to true and provide your answer in “final_answer”. "
 SYSTEM_PROMPT += "If you cannot solve it, set “is_solvable” to false and explain why in “unsolvable_reason”. Your final answer should be a number OR "
@@ -146,13 +158,7 @@ SYSTEM_PROMPT += "Output plain text only. Do not use emojis or emoticons. "
 SYSTEM_PROMPT += f"Output ONLY a valid JSON object matching this schema: {gaia_output_string}. "
 SYSTEM_PROMPT += "Do not include markdown blocks or schema keywords like 'properties' in your final output."
 
-SUBSET = "2023_level1"
-DATASET_ID = "gaia-benchmark/GAIA"
 
-# Load GAIA Dataset, subset Level 1, validation split
-console.print(f"\nLoading GAIA dataset", style="gold1", highlight=False)
-gaia_level1_problems = load_dataset(DATASET_ID, SUBSET, split="validation")
-console.print(f"Dataset loaded successfully. Number of problems: {len(gaia_level1_problems)}", style="gold1", highlight = False)
 
 """
 # Inspect the first item in the dataset
@@ -168,7 +174,10 @@ print()
 """
 """
 
-# Inferencia simple con respuesta en formato JSON
+# ================================================
+# Test step 1: Simple inference with JSON response
+# ================================================
+
 console.print(f"Test simple inference with JSON response", style="gold1")
 
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
@@ -189,10 +198,9 @@ console.print(f"Question: {question}", style="white", highlight=False)
 
 start_time = time.time()
 response = client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)
-clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
 
-# Sanitizer. Regex that catches any variation of a stuttered opening brace ({{, {"{, etc.) and flattens it.
-clean_response = re.sub(r'^\{\s*\"?\{', '{', clean_response)
+# response -> clean_response -> dict_response -> final_response
+clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
 
 # Unwrap Safeguard. Parse the raw string into a standard Python dictionary first
 try:
@@ -208,47 +216,47 @@ if "properties" in dict_response:
 final_response = GaiaOutput.model_validate(dict_response)
 end_time = time.time()
 execution_time_seconds = (end_time - start_time)
+speed = response.usage.total_tokens / execution_time_seconds
 
 # print(f"Response: {clean_response}")
 # print(f"Response, extrated from JSON using Pydantic: {final_response}")
 # print(f"Answer, extrated from JSON using Pydantic: {final_response.final_answer}")
-print(f"Answer: {final_response.final_answer}")
 # print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
 # console.print(f"Time: {execution_time_seconds:.2f} seconds\n", style="cyan", highlight=False)
-speed = response.usage.total_tokens / execution_time_seconds
+print(f"Answer: {final_response.final_answer}")
 console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
-print()
 
-"""
-# Test inference using the GAIA dataset sample
-console.print(f"Inference with GAIA sample:", style="gold1")
+
+# ===============================================================================================================
+# Test step 2: Inference using GAIA dataset quiestion, with JSON reply. Do not evaluate right or wrong answer yet
+# ===============================================================================================================
+
+# Inferencia using the GAIA dataset with JSON reply
+console.print(f"Test: simple inference from GAIA sample with JSON response:", style="gold1")
 
 # Extract the question and the expected ground-truth answer from the sample
+sample = gaia_level1_problems[0] 
 gaia_question = sample["Question"]
 expected_answer = sample["Final answer"]
 
-messages_gaia = [
+# List of dictionaries. Named 'messages' for alignment with OpenAI's SDK specification 
+messages = [
     {"role": "system", "content": SYSTEM_PROMPT},
     {"role": "user", "content": gaia_question}
 ]
-
+"""
 console.print("Question:", style="white", highlight=False)
 for item in messages_gaia:
     console.print(f"{item}", style="white", highlight=False)
+"""
+console.print(f"Question: {gaia_question}", style="white", highlight=False)    
 
-# Make the API call (including the MODEL_TEMPERATURE variable defined earlier)
 start_time = time.time()
-response_gaia = client.chat.completions.create(
-    model=MODEL_NAME, 
-    messages=messages_gaia,
-    temperature=MODEL_TEMPERATURE
-)
+response = client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)
+clean_response = response.choices[0].message.content.strip()      # Remove trailing \n in the LLM response
+clean_response_gaia = re.sub(r'^\{\s*\"?\{', '{', clean_response) # Sanitizer
 
-clean_response_gaia = response_gaia.choices[0].message.content.strip()
-
-# Sanitizer
-clean_response_gaia = re.sub(r'^\{\s*\"?\{', '{', clean_response_gaia)
-
+"""
 # Unwrap Safeguard
 try:
     dict_response_gaia = json.loads(clean_response_gaia)
