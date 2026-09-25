@@ -169,7 +169,7 @@ print()
 """
 
 # Inferencia simple con respuesta en formato JSON
-console.print(f"Test simple inference:", style="gold1")
+console.print(f"Test simple inference with JSON response", style="gold1")
 
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
 
@@ -209,13 +209,13 @@ final_response = GaiaOutput.model_validate(dict_response)
 end_time = time.time()
 execution_time_seconds = (end_time - start_time)
 
-print(f"Response: {clean_response}")
-print(f"Response, extrated from JSON using Pydantic: {final_response}")
+# print(f"Response: {clean_response}")
+# print(f"Response, extrated from JSON using Pydantic: {final_response}")
 # print(f"Answer, extrated from JSON using Pydantic: {final_response.final_answer}")
 print(f"Answer: {final_response.final_answer}")
 # print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
 # console.print(f"Time: {execution_time_seconds:.2f} seconds\n", style="cyan", highlight=False)
-speed = response.usage.prompt_tokens / execution_time_seconds
+speed = response.usage.total_tokens / execution_time_seconds
 console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
 print()
 

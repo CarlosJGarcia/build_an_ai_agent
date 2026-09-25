@@ -191,6 +191,9 @@ start_time = time.time()
 response = client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)
 clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
 
+# Print the actual model that responded (verify correct endpoint)
+print(f"Model responded: {response.model}")
+
 # Sanitizer. Regex that catches any variation of a stuttered opening brace ({{, {"{, etc.) and flattens it.
 clean_response = re.sub(r'^\{\s*\"?\{', '{', clean_response)
 
@@ -202,7 +205,7 @@ except json.JSONDecodeError:
 
 # If the model stubbornly wrapped the output in a "properties" key, unwrap it
 if "properties" in dict_response:
-    raw_dict = dict_response["properties"]
+    dict_response = dict_response["properties"]
 
 # Manually parse the clean JSON string into the Pydantic object
 final_response = GaiaOutput.model_validate(dict_response)
@@ -211,7 +214,7 @@ execution_time_seconds = (end_time - start_time)
 
 # print(f"Response: {clean_response}")
 # print(f"Response, extrated from JSON using Pydantic: {final_response}")
-print(f"Answer, extrated from JSON using Pydantic: {final_response.final_answer}")
+print(f"Answer: {final_response.final_answer}")
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
 #console.print(f"Time: {execution_time_seconds:.2f} seconds\n", style="cyan", highlight=False)
 speed = response.usage.total_tokens / execution_time_seconds
@@ -249,7 +252,7 @@ except json.JSONDecodeError:
 
 # If the model stubbornly wrapped the output in a "properties" key, unwrap it
 if "properties" in dict_response:
-    raw_dict = dict_response["properties"]
+    dict_response = dict_response["properties"]
 
 # Manually parse the clean JSON string into the Pydantic object
 final_response = GaiaOutput.model_validate(dict_response)
@@ -258,7 +261,7 @@ execution_time_seconds = (end_time - start_time)
 
 # print(f"Response: {clean_response}")
 # print(f"Response, extrated from JSON using Pydantic: {final_response}")
-print(f"Answer, extrated from JSON using Pydantic: {final_response.final_answer}")
+print(f"Answer: {final_response.final_answer}")
 print(f"Tokens: {response.usage.total_tokens} (Total) = {response.usage.prompt_tokens} (Prompt, including 'messages' list) + {response.usage.completion_tokens} (Completion, this reply including reasoning)")
 # console.print(f"Time: {execution_time_seconds:.2f} seconds\n", style="cyan", highlight=False)
 speed = response.usage.total_tokens / execution_time_seconds
