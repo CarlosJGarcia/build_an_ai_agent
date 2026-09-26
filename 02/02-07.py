@@ -135,7 +135,6 @@ console.print(f"\nLoading GAIA dataset", style="gold1", highlight=False)
 gaia_level1_problems = load_dataset(DATASET_ID, SUBSET, split="validation")
 console.print(f"Dataset loaded successfully. Number of problems: {len(gaia_level1_problems)}", style="gold1", highlight = False)
 
-
 # Model. First model
 vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
 if not vllm_server_fqdn:
@@ -208,7 +207,7 @@ except json.JSONDecodeError:
 if "properties" in dict_response:
     raw_dict = dict_response["properties"]
 
-# Manually parse the clean JSON string into the Pydantic object
+# Parse the clean JSON string into the Pydantic object
 final_response = GaiaOutput.model_validate(dict_response)
 end_time = time.time()
 execution_time_seconds = (end_time - start_time)
@@ -223,66 +222,75 @@ print(f"Answer: {final_response.final_answer}")
 console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
 
 
-# ===============================================================================================================
-# Test step 2: Inference using GAIA dataset quiestion, with JSON reply. Do not evaluate right or wrong answer yet
-# ===============================================================================================================
+# ==================================================================================================================
+# Test step 2: Inference using one GAIA dataset question, with JSON reply. Do not evaluate right or wrong answer yet
+# ==================================================================================================================
 
 # Inferencia using the GAIA dataset with JSON reply
-console.print(f"Test: simple inference from GAIA sample with JSON response:", style="gold1")
+console.print(f"Test simple inference from GAIA sample with JSON response:", style="gold1")
 
-# Extract the question and the expected ground-truth answer from the sample
+# Dataset. Extract the question and the expected ground-truth answer from the first dataset item
 sample = gaia_level1_problems[0] 
-gaia_question = sample["Question"]
+question = sample["Question"]
 expected_answer = sample["Final answer"]
 
 # List of dictionaries. Named 'messages' for alignment with OpenAI's SDK specification 
 messages = [
-    {"role": "system", "content": SYSTEM_PROMPT},
-    {"role": "user", "content": gaia_question}
-]
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": question}
+    ]
 """
 console.print("Question:", style="white", highlight=False)
 for item in messages_gaia:
     console.print(f"{item}", style="white", highlight=False)
 """
-console.print(f"Question: {gaia_question}", style="white", highlight=False)    
+console.print(f"Question: {question}", style="white", highlight=False)    
 
 start_time = time.time()
 response = client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)
+# Response parsing ()
+# response -> clean_response -> dict_response -> final_response
 clean_response = response.choices[0].message.content.strip()      # Remove trailing \n in the LLM response
-clean_response_gaia = re.sub(r'^\{\s*\"?\{', '{', clean_response) # Sanitizer
+clean_response = re.sub(r'^\{\s*\"?\{', '{', clean_response)      # Sanitizer
 
-"""
-# Unwrap Safeguard
+# Unwrap Safeguard.Parse the raw string into a standard Python dictionary first
 try:
-    dict_response_gaia = json.loads(clean_response_gaia)
+    dict_response = json.loads(clean_response)
 except json.JSONDecodeError:
-    raise ValueError(f"Model failed to output valid JSON. Raw output: {clean_response_gaia}")
+    raise ValueError(f"Model failed to output valid JSON. Raw output: {clean_response}")
 
-if "properties" in dict_response_gaia:
-    dict_response_gaia = dict_response_gaia["properties"]
+# If the model stubbornly wrapped the output in a "properties" key, unwrap it
+if "properties" in dict_response:
+    dict_respons = dict_response["properties"]
 
 # Parse into Pydantic object
-final_response_gaia = GaiaOutput.model_validate(dict_response_gaia)
+final_response = GaiaOutput.model_validate(dict_response)
 end_time = time.time()
 execution_time_seconds = (end_time - start_time)
+speed = response.usage.total_tokens / execution_time_seconds
 
-print(f"\nResponse: {clean_response_gaia}")
-print(f"Pydantic Object: {final_response_gaia}")
-print(f"Answer (LLM): {final_response_gaia.final_answer}")
-print(f"Answer (dataset): {expected_answer}")
-
+# print(f"\nResponse: {clean_response_gaia}")
+# print(f"Pydantic Object: {final_response_gaia}")
+# print(f"Answer (LLM): {final_response_gaia.final_answer}")
+# print(f"Answer (dataset): {expected_answer}")
+print(f"Answer: {final_response.final_answer}")
 
 # Validate if the LLM got it right using the is_correct function
-is_match = is_correct(final_response_gaia.final_answer, expected_answer)
-console.print(f"Match: {is_match}", style="cyan" if is_match else "red", highlight=False)
+is_match = is_correct(final_response.final_answer, expected_answer)
+console.print(f"Match: {is_match}", style="bright_green" if is_match else "red", highlight=False)
 
+console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
+
+
+
+"""
 print(f"Tokens: {response_gaia.usage.total_tokens} (Total) = {response_gaia.usage.prompt_tokens} (Prompt, including 'messages' list) + {response_gaia.usage.completion_tokens} (Completion, this reply including reasoning)")
 speed = response_gaia.usage.total_tokens / execution_time_seconds
 console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
 print()
+"""
 
-
+"""
 # ==========================================
 # Full GAIA Level 1 Validation Loop
 # ==========================================
