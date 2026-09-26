@@ -141,6 +141,11 @@ console.print(f"\nLoading GAIA dataset", style="gold1", highlight=False)
 gaia_level1_problems = load_dataset(DATASET_ID, SUBSET, split="validation")
 console.print(f"Dataset loaded successfully. Number of problems: {len(gaia_level1_problems)}", style="gold1", highlight = False)
 
+# Async. Initialize the semaphore and the async client
+TOTAL_QUESTIONS = 50          # Limit to 50 requests
+CONCURRENT_QUESTIONS = 10     # Limit to 10 concurrent requests
+semaphore = asyncio.Semaphore(CONCURRENT_QUESTIONS)
+
 # Model. First model
 vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
 if not vllm_server_fqdn:
@@ -164,6 +169,8 @@ SYSTEM_PROMPT += f"Output ONLY a valid JSON object matching this schema: {gaia_o
 SYSTEM_PROMPT += "Do not include markdown blocks or schema keywords like 'properties' in your final output."
 
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
+#client = AsyncOpenAI(base_url=vllm_url, api_key="EMPTY") 
+
 
 """
 # Inspect the first item in the dataset
