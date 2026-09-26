@@ -1,10 +1,14 @@
 # Load GAIA dataset Level 1 questions and evaluate two OpenAI-compatible LLMs 
 # Report each model’s accuracy and token-processing speed
 # Concurrent inference requests
-# GAIA (General AI Assistants) dataset from Meta and Hugging Face
-# 'Convinces' the LLM to reply using data structures (JSON - JavaScript Object Notation)
-# OpenAI’s Chat Completions API
 # Reinach 24/Sep/2026
+
+# Libraries
+# 1. Datasets (Hugging Face) to load GAIA (General AI Assistants) dataset created by Meta and Hugging Face
+# 2. Chat Completions API (OpenAI) - Inference
+# 3. JSON (JavaScript Object Notation) - Prompt engineering 'convinces' the LLM to reply using data structures (JSON)
+# 4. Pydantic - Validate the structure of the response from the LLM
+# 5. Async - Concurrent inference
 
 import os
 import re
@@ -31,8 +35,6 @@ gaia_output_json_schema = {
     "unsolvable_reason": "string",
     "final_answer": "string"
 }
-
-
 
 """
 # Coroutine (function defined with async def) that sends a GAIA problem to the model and receives the structured reply
@@ -121,10 +123,10 @@ async def run_experiment(
 """
     
 
-# ==========================================
-# Main - Prepares GAIA system prompt
+# =====================
+# Main - Initialization
+# =====================
 console = Console()
-
 
 # Dataset. Load GAIA Dataset, subset Level 1, validation split
 SUBSET = "2023_level1"
@@ -142,11 +144,9 @@ vllm_url = f"http://{vllm_server_fqdn}:8000/v1"
 MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
 MODEL_TEMPERATURE = 0.0
 
-
 # Prompt engineering. GAIA’s standard evaluation prompt, instructs the model to provide answers in a consistent format
 gaia_output_string = json.dumps(gaia_output_json_schema)
 # console.print(f"\nJSON schema_string: {gaia_output_string}", style="gold1", highlight=False)
-
 SYSTEM_PROMPT = "You are a general AI assistant. I will ask you a question. First, determine if you can solve this problem with your current capabilities "
 SYSTEM_PROMPT += "and set “is_solvable” accordingly. If you can solve it, set “is_solvable” to true and provide your answer in “final_answer”. "
 SYSTEM_PROMPT += "If you cannot solve it, set “is_solvable” to false and explain why in “unsolvable_reason”. Your final answer should be a number OR "
@@ -157,8 +157,6 @@ SYSTEM_PROMPT += "list, apply the above rules depending on whether the element i
 SYSTEM_PROMPT += "Output plain text only. Do not use emojis or emoticons. "
 SYSTEM_PROMPT += f"Output ONLY a valid JSON object matching this schema: {gaia_output_string}. "
 SYSTEM_PROMPT += "Do not include markdown blocks or schema keywords like 'properties' in your final output."
-
-
 
 """
 # Inspect the first item in the dataset
@@ -171,17 +169,14 @@ for key, value in sample.items():
 
 print()
 
-"""
-"""
-
 # ================================================
 # Test step 1: Simple inference with JSON response
 # ================================================
-
 console.print(f"Test simple inference with JSON response", style="gold1")
 
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
 
+# Model. Inference with a harcoded question
 question = "What is the capital of France?"
 # List of dictionaries. Named 'messages' for alignment with OpenAI's SDK specification 
 messages = [
@@ -199,6 +194,7 @@ console.print(f"Question: {question}", style="white", highlight=False)
 start_time = time.time()
 response = client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)
 
+# Response parsing ()
 # response -> clean_response -> dict_response -> final_response
 clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
 
