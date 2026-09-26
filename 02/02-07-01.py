@@ -1,14 +1,20 @@
 # Load GAIA dataset Level 1 questions and evaluate two OpenAI-compatible LLMs 
 # Report each model’s accuracy and token-processing speed
 # Concurrent inference requests
-# Reinach 24/Sep/2026
+# Reinach 26/Sep/2026
+
+# 02-07-01
+# Step 01 - The Async "Plumbing" Test
+#    - Move the inference to a function
+#    - Switch from OpenAI to AsyncOpenAI
+#    - Wrap the function in async def and use asyncio.run() for just one single question.
 
 # Libraries
 # 1. Datasets (Hugging Face) to load GAIA (General AI Assistants) dataset created by Meta and Hugging Face
 # 2. Chat Completions API (OpenAI) - Inference
 # 3. JSON (JavaScript Object Notation) - Prompt engineering 'convinces' the LLM to reply using data structures (JSON). Serialize the pydantic data for interaction with the model
 # 4. Pydantic - Validate the structure of the response from the LLM
-
+# 5. Async - Concurrent inference
 
 import os
 import re
@@ -173,6 +179,7 @@ print()
 # ================================================
 # Test step 1: Simple inference with JSON response
 # ================================================
+"""
 console.print(f"Test simple inference with JSON response", style="gold1")
 
 
@@ -184,11 +191,12 @@ messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": question}
     ]
-
+"""
 """
 console.print("Question:", style="white", highlight=False)
 for item in messages:
     console.print(f"{item}", style="white", highlight=False)
+"""
 """
 console.print(f"Question: {question}", style="white", highlight=False)    
 
@@ -222,7 +230,7 @@ speed = response.usage.total_tokens / execution_time_seconds
 # console.print(f"Time: {execution_time_seconds:.2f} seconds\n", style="cyan", highlight=False)
 print(f"Answer: {final_response.final_answer}")
 console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
-
+"""
 
 # ==========================================================================================================
 # Test step 2: Inference using one GAIA dataset question, with JSON reply. Evaluate answer as right or wrong
