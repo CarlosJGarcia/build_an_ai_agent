@@ -4,7 +4,7 @@
 # Reinach 26/Sep/2026
 
 # 02-07-01
-# Step 01 - The Async "Plumbing" Test
+# Step 01 - Async "Plumbing" Test
 #    - Move the inference to a function
 #    - Switch from OpenAI to AsyncOpenAI
 #    - Wrap the function in async def and use asyncio.run() for just one single question.
@@ -41,6 +41,36 @@ gaia_output_json_schema = {
     "unsolvable_reason": "string",
     "final_answer": "string"
 }
+
+# Sends a GAIA problem to the model and returns the reply from the model
+def inference(question):
+
+    # List of dictionaries. Named 'messages' for alignment with OpenAI's SDK specification 
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": question}
+    ]
+    response = client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)
+
+    # Response parsing ()
+    # response -> clean_response -> dict_response -> final_response
+    clean_response = response.choices[0].message.content.strip()      # Remove trailing \n in the LLM response
+    clean_response = re.sub(r'^\{\s*\"?\{', '{', clean_response)      # Sanitizer
+
+    # Unwrap Safeguard.Parse the raw string into a standard Python dictionary first
+    try:
+        dict_response = json.loads(clean_response)
+    except json.JSONDecodeError:
+        raise ValueError(f"Model failed to output valid JSON. Raw output: {clean_response}")
+
+    # If the model stubbornly wrapped the output in a "properties" key, unwrap it
+    if "properties" in dict_response:
+        dict_respons = dict_response["properties"]
+
+    # Parse into Pydantic object
+    final_response = GaiaOutput.model_validate(dict_response)
+        
+    return final_response, response.usage.total_tokens
 
 """
 # Coroutine (function defined with async def) that sends a GAIA problem to the model and receives the structured reply
@@ -238,6 +268,36 @@ speed = response.usage.total_tokens / execution_time_seconds
 print(f"Answer: {final_response.final_answer}")
 console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
 """
+
+# ==========================================================================================================
+# Test step 1: Inference using one GAIA dataset question, with JSON reply. Evaluate answer as right or wrong
+# ==========================================================================================================
+
+# Inferencia using the GAIA dataset with JSON reply
+console.print(f"Test simple inference from GAIA sample with JSON response:", style="gold1")
+
+# Dataset. Extract the question and the expected ground-truth answer from the first dataset item
+sample = gaia_level1_problems[0] 
+question = sample["Question"]
+expected_answer = sample["Final answer"]
+
+console.print(f"Question: {question}", style="white", highlight=False)
+start_time = time.time()
+response, tokens = inference(question)
+end_time = time.time()
+
+execution_time_seconds = (end_time - start_time)
+speed = tokens / execution_time_seconds
+
+print(f"Answer: {response.final_answer}")
+
+# Validate if the LLM got it right using the is_correct function
+is_match = is_correct(response.final_answer, expected_answer)
+console.print(f"Match: {is_match}", style="bright_green" if is_match else "red", highlight=False)
+
+console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
+
+
 
 # ==========================================================================================================
 # Test step 2: Inference using one GAIA dataset question, with JSON reply. Evaluate answer as right or wrong
