@@ -21,8 +21,7 @@ import re
 import json
 import time
 import asyncio
-from openai import OpenAI         # <-- Linear (to be removed)
-from openai import AsyncOpenAI    # <-- Concurrent
+from openai import AsyncOpenAI    
 from pydantic import BaseModel
 from rich.console import Console
 from datasets import load_dataset
@@ -302,6 +301,7 @@ async def main():
 
 asyncio.run(main())
 
+"""
 # ==========================================================================================================
 # Test step 2: Inference using one GAIA dataset question, with JSON reply. Evaluate answer as right or wrong
 # ==========================================================================================================
@@ -320,9 +320,11 @@ messages = [
         {"role": "user", "content": question}
     ]
 """
+"""
 console.print("Question:", style="white", highlight=False)
 for item in messages_gaia:
     console.print(f"{item}", style="white", highlight=False)
+"""
 """
 console.print(f"Question: {question}", style="white", highlight=False)    
 
@@ -360,7 +362,7 @@ is_match = is_correct(final_response.final_answer, expected_answer)
 console.print(f"Match: {is_match}", style="bright_green" if is_match else "red", highlight=False)
 
 console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
-
+"""
 
 
 """
