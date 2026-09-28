@@ -21,7 +21,8 @@ import re
 import json
 import time
 import asyncio
-from openai import OpenAI
+from openai import OpenAI         # <-- Linear (to be removed)
+from openai import AsyncOpenAI    # <-- Concurrent
 from pydantic import BaseModel
 from rich.console import Console
 from datasets import load_dataset
@@ -42,15 +43,15 @@ gaia_output_json_schema = {
     "final_answer": "string"
 }
 
-# Sends a GAIA problem to the model and returns the reply from the model
-def inference(question):
+# Sends a question to the model and returns the reply using the GaiaOutput format and the number of tokens processed
+async def inference(question):
 
     # List of dictionaries. Named 'messages' for alignment with OpenAI's SDK specification 
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": question}
     ]
-    response = client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)
+    response = await client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=MODEL_TEMPERATURE)
 
     # Response parsing ()
     # response -> clean_response -> dict_response -> final_response
@@ -65,7 +66,7 @@ def inference(question):
 
     # If the model stubbornly wrapped the output in a "properties" key, unwrap it
     if "properties" in dict_response:
-        dict_respons = dict_response["properties"]
+        dict_response = dict_response["properties"]
 
     # Parse into Pydantic object
     final_response = GaiaOutput.model_validate(dict_response)
@@ -198,8 +199,8 @@ SYSTEM_PROMPT += "Output plain text only. Do not use emojis or emoticons. "
 SYSTEM_PROMPT += f"Output ONLY a valid JSON object matching this schema: {gaia_output_string}. "
 SYSTEM_PROMPT += "Do not include markdown blocks or schema keywords like 'properties' in your final output."
 
-client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
-#client = AsyncOpenAI(base_url=vllm_url, api_key="EMPTY") 
+# client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
+client = AsyncOpenAI(base_url=vllm_url, api_key="EMPTY") 
 
 
 """
@@ -273,31 +274,33 @@ console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} t
 # Test step 1: Inference using one GAIA dataset question, with JSON reply. Evaluate answer as right or wrong
 # ==========================================================================================================
 
-# Inferencia using the GAIA dataset with JSON reply
-console.print(f"Test simple inference from GAIA sample with JSON response:", style="gold1")
+async def main():
 
-# Dataset. Extract the question and the expected ground-truth answer from the first dataset item
-sample = gaia_level1_problems[0] 
-question = sample["Question"]
-expected_answer = sample["Final answer"]
+    # Inferencia using the GAIA dataset with JSON reply
+    console.print(f"Test simple inference from GAIA sample with JSON response:", style="gold1")
 
-console.print(f"Question: {question}", style="white", highlight=False)
-start_time = time.time()
-response, tokens = inference(question)
-end_time = time.time()
+    # Dataset. Extract the question and the expected ground-truth answer from the first dataset item
+    sample = gaia_level1_problems[0] 
+    question = sample["Question"]
+    expected_answer = sample["Final answer"]
 
-execution_time_seconds = (end_time - start_time)
-speed = tokens / execution_time_seconds
+    console.print(f"Question: {question}", style="white", highlight=False)
+    start_time = time.time()
+    response, tokens = await inference(question)
+    end_time = time.time()
 
-print(f"Answer: {response.final_answer}")
+    execution_time_seconds = (end_time - start_time)
+    speed = tokens / execution_time_seconds
 
-# Validate if the LLM got it right using the is_correct function
-is_match = is_correct(response.final_answer, expected_answer)
-console.print(f"Match: {is_match}", style="bright_green" if is_match else "red", highlight=False)
+    print(f"Answer: {response.final_answer}")
 
-console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
+    # Validate if the LLM got it right using the is_correct function
+    is_match = is_correct(response.final_answer, expected_answer)
+    console.print(f"Match: {is_match}", style="bright_green" if is_match else "red", highlight=False)
 
+    console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
 
+asyncio.run(main())
 
 # ==========================================================================================================
 # Test step 2: Inference using one GAIA dataset question, with JSON reply. Evaluate answer as right or wrong
