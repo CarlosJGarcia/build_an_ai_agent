@@ -9,10 +9,11 @@
 #    - Switch from OpenAI to AsyncOpenAI
 #    - Wrap the function in async def and use asyncio.run() for just one single question
 # Step 02 - Sequential Async loop
-#    - Add a loop inside the async function to process 3 items from the Dataset, one by one, using await on each one sequentially
+#    - Add a loop inside the async function to process 3 to 10 items from the Dataset, one by one, using await on each one sequentially
 #    - This proves that the Dataset loaded correctly and that the Pydantic schema can handle different outputs from the LLM without crashing
 # Step 03 - The Concurrent Pipeline
-#    - Introduce asyncio.gather() and a Semaphore to process 3 items from the Dataset at the exact same time
+#    - Introduce asyncio.gather() and a Semaphore to process 10 items from the Dataset at the exact same time
+
 
 
 
@@ -179,7 +180,7 @@ console.print(f"\nLoading GAIA dataset", style="gold1", highlight=False)
 gaia_level1_problems = load_dataset(DATASET_ID, SUBSET, split="validation")
 gaia_level1_problems_subset = gaia_level1_problems.select(range(TOTAL_QUESTIONS))  # Sub-subset with the first (TOTAL_QUESTIONS) problems
 
-console.print(f"Dataset loaded successfully. Number of problems: {len(gaia_level1_problems)}", style="gold1", highlight = False)
+console.print(f"Dataset loaded successfully. number of problems: {len(gaia_level1_problems)}, in sub-subset: {TOTAL_QUESTIONS}", style="gold1", highlight = False)
 
 # Async. Initialize the semaphore and the async client
 
