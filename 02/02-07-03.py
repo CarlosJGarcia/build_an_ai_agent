@@ -15,8 +15,6 @@
 #    - Introduce asyncio.gather() and a Semaphore to process 10 items from the Dataset at the exact same time
 
 
-
-
 # Libraries
 # 1. Datasets (Hugging Face) to load GAIA (General AI Assistants) dataset created by Meta and Hugging Face
 # 2. Chat Completions API (OpenAI) - Inference
@@ -80,6 +78,47 @@ async def inference(question):
         
     return final_response, response.usage.total_tokens
 
+# Answer validation
+def is_correct(prediction: str | None, answer: str) -> bool:
+    """Check exact match between prediction and answer (case-insensitive)."""
+    if prediction is None:
+        return False
+    return prediction.strip().lower() == answer.strip().lower()
+
+# ==========================================================================================================
+# Inference using one GAIA dataset question, with JSON reply. Evaluate answer as right or wrong
+# ==========================================================================================================
+async def main():
+
+    # Bucle (prueba)
+    for problem in gaia_level1_problems_subset:
+        # print(problem["Question"])
+    
+        # Inferencia using the GAIA dataset with JSON reply
+        console.print(f"Inference from GAIA question with JSON response:", style="gold1")
+
+        # Dataset. Extract the question and the expected ground-truth answer from the first dataset item
+        # sample = gaia_level1_problems[0] 
+        question = problem["Question"]
+        expected_answer = problem["Final answer"]
+
+        console.print(f"Question: {question}", style="white", highlight=False)
+        start_time = time.time()
+        response, tokens = await inference(question)
+        end_time = time.time()
+
+        execution_time_seconds = (end_time - start_time)
+        speed = tokens / execution_time_seconds
+
+        print(f"Answer: {response.final_answer}")
+
+        # Validate if the LLM got it right using the is_correct function
+        is_match = is_correct(response.final_answer, expected_answer)
+        console.print(f"Match: {is_match}", style="bright_green" if is_match else "red", highlight=False)
+
+        console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
+
+
 """
 # Coroutine (function defined with async def) that sends a GAIA problem to the model and receives the structured reply
 async def solve_problem(model: str, question: str) -> GaiaOutput:
@@ -107,14 +146,6 @@ async def solve_problem(model: str, question: str) -> GaiaOutput:
             )
         return GaiaOutput.model_validate_json(content)
 """
-
-
-# Answer validation
-def is_correct(prediction: str | None, answer: str) -> bool:
-    """Check exact match between prediction and answer (case-insensitive)."""
-    if prediction is None:
-        return False
-    return prediction.strip().lower() == answer.strip().lower()
 
 
 """
@@ -211,7 +242,10 @@ SYSTEM_PROMPT += "Do not include markdown blocks or schema keywords like 'proper
 
 # client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
 client = AsyncOpenAI(base_url=vllm_url, api_key="EMPTY") 
+print()
 
+# Run the main block that contains the async calls
+asyncio.run(main())
 
 """
 # Inspect the first item in the dataset
@@ -222,7 +256,7 @@ for key, value in sample.items():
     print(f"{key}: {content_preview}...")
 """
 
-print()
+
 
 # ================================================
 # Test step 1: Simple inference with JSON response
@@ -280,41 +314,8 @@ print(f"Answer: {final_response.final_answer}")
 console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
 """
 
-# ==========================================================================================================
-# Test step 1: Inference using one GAIA dataset question, with JSON reply. Evaluate answer as right or wrong
-# ==========================================================================================================
 
-async def main():
 
-    # Bucle (prueba)
-    for problem in gaia_level1_problems_subset:
-        # print(problem["Question"])
-    
-        # Inferencia using the GAIA dataset with JSON reply
-        console.print(f"Inference from GAIA question with JSON response:", style="gold1")
-
-        # Dataset. Extract the question and the expected ground-truth answer from the first dataset item
-        # sample = gaia_level1_problems[0] 
-        question = problem["Question"]
-        expected_answer = problem["Final answer"]
-
-        console.print(f"Question: {question}", style="white", highlight=False)
-        start_time = time.time()
-        response, tokens = await inference(question)
-        end_time = time.time()
-
-        execution_time_seconds = (end_time - start_time)
-        speed = tokens / execution_time_seconds
-
-        print(f"Answer: {response.final_answer}")
-
-        # Validate if the LLM got it right using the is_correct function
-        is_match = is_correct(response.final_answer, expected_answer)
-        console.print(f"Match: {is_match}", style="bright_green" if is_match else "red", highlight=False)
-
-        console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
-
-asyncio.run(main())
 
 """
 # ==========================================================================================================
