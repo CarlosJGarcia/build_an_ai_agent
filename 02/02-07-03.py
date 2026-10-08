@@ -17,7 +17,7 @@
 
 # Libraries
 # 1. Datasets (Hugging Face) to load GAIA (General AI Assistants) dataset created by Meta and Hugging Face
-# 2. Chat Completions API (OpenAI) - Inference
+# 2. Chat Completions API (OpenAI) - Inference. Chat = Conversational interface. Completions = When the LLM takes a prompt and 'completes' it with a response
 # 3. JSON (JavaScript Object Notation) - Prompt engineering 'convinces' the LLM to reply using data structures (JSON). Serialize the pydantic data for interaction with the model
 # 4. Pydantic - Validate the structure of the response from the LLM
 # 5. Async - Concurrent inference
@@ -90,33 +90,82 @@ def is_correct(prediction: str | None, answer: str) -> bool:
 # ==========================================================================================================
 async def main():
 
-    # Bucle (prueba)
-    for problem in gaia_level1_problems_subset:
-        # print(problem["Question"])
+    # --- Sequential version (commented out) ---
+    # for problem in gaia_level1_problems_subset:
+    #     question = problem["Question"]
+    #     expected_answer = problem["Final answer"]
+    #     console.print(f"Inference from GAIA question with JSON response:", style="gold1")
+    #     console.print(f"Question: {question}", style="white", highlight=False)
+    #     start_time = time.time()
+    #     response, tokens = await inference(question)
+    #     end_time = time.time()
+    #     execution_time_seconds = (end_time - start_time)
+    #     speed = tokens / execution_time_seconds
+    #     print(f"Answer: {response.final_answer}")
+    #     is_match = is_correct(response.final_answer, expected_answer)
+    #     console.print(f"Match: {is_match}", style="bright_green" if is_match else "red", highlight=False)
+    #     console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
+
+    # --- Concurrent version with asyncio.gather() ---
+    console.print(f"Processing {TOTAL_QUESTIONS} problems concurrently.", style="gold1", highlight=False)
     
-        # Inferencia using the GAIA dataset with JSON reply
-        console.print(f"Inference from GAIA question with JSON response:", style="gold1")
+    # Create a list of coroutines, one per problem
+    coroutines = [
+        process_single_problem(problem)
+        for problem in gaia_level1_problems_subset
+    ]
 
-        # Dataset. Extract the question and the expected ground-truth answer from the first dataset item
-        # sample = gaia_level1_problems[0] 
-        question = problem["Question"]
-        expected_answer = problem["Final answer"]
+    # Run all coroutines concurrently and collect results
+    start_time = time.time()
+    results = await asyncio.gather(*coroutines, return_exceptions=True)
+    end_time = time.time()
 
-        console.print(f"Question: {question}", style="white", highlight=False)
-        start_time = time.time()
-        response, tokens = await inference(question)
-        end_time = time.time()
+    total_time = (end_time - start_time)
+    console.print(f"Total time: {total_time:.2f} seconds\n", style="cyan")
 
-        execution_time_seconds = (end_time - start_time)
-        speed = tokens / execution_time_seconds
+    # Print results
+    for i, result in enumerate(results):
+        if isinstance(result, Exception):
+            console.print(f"[{i}] ERROR: {result}", style="red")
+            continue
+        
+        response, tokens, question, expected_answer = result
+        execution_time = response.get("execution_time", 0)
+        speed = response.get("speed", 0)
+        is_match = response.get("is_match", False)
+        
+        console.print(f"[{i}] Question: {question[:60]}...", style="white", highlight=False)
+        console.print(f"    Answer: {response['final_answer']}", style="white")
+        console.print(f"    Match: {is_match}", style="bright_green" if is_match else "red")
+        console.print(f"    Time: {execution_time:.2f}s, Speed: {speed:.2f} tok/s", style="cyan")
+        console.print()
 
-        print(f"Answer: {response.final_answer}")
 
-        # Validate if the LLM got it right using the is_correct function
-        is_match = is_correct(response.final_answer, expected_answer)
-        console.print(f"Match: {is_match}", style="bright_green" if is_match else "red", highlight=False)
-
-        console.print(f"Time: {execution_time_seconds:.2f} seconds, speed: {speed:.2f} tokens/second\n", style="cyan", highlight=False)
+# Helper: process a single problem and return all needed data
+async def process_single_problem(problem: dict) -> tuple:
+    question = problem["Question"]
+    expected_answer = problem["Final answer"]
+    
+    start_time = time.time()
+    response, tokens = await inference(question)
+    end_time = time.time()
+    
+    execution_time_seconds = (end_time - start_time)
+    speed = tokens / execution_time_seconds if execution_time_seconds > 0 else 0
+    is_match = is_correct(response.final_answer, expected_answer)
+    
+    return (
+        {
+            "final_answer": response.final_answer,
+            "tokens": tokens,
+            "execution_time": execution_time_seconds,
+            "speed": speed,
+            "is_match": is_match,
+        },
+        tokens,
+        question,
+        expected_answer,
+    )
 
 
 """
@@ -211,7 +260,8 @@ console.print(f"\nLoading GAIA dataset", style="gold1", highlight=False)
 gaia_level1_problems = load_dataset(DATASET_ID, SUBSET, split="validation")
 gaia_level1_problems_subset = gaia_level1_problems.select(range(TOTAL_QUESTIONS))  # Sub-subset with the first (TOTAL_QUESTIONS) problems
 
-console.print(f"Dataset loaded successfully. number of problems: {len(gaia_level1_problems)}, in sub-subset: {TOTAL_QUESTIONS}", style="gold1", highlight = False)
+console.print(f"Dataset loaded successfully, subset: {SUBSET}, number of problems: {len(gaia_level1_problems)}", style="gold1", highlight = False)
+console.print(f"Sub-subset created with: {TOTAL_QUESTIONS} problems.", style="gold1", highlight = False)
 
 # Async. Initialize the semaphore and the async client
 
