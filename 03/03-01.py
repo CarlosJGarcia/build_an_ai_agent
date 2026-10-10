@@ -61,7 +61,7 @@ console = Console()
 print(f"\nTop level keys: {calculator_tool_definition.keys()}")
 
 # Print the values of the top level keys
-console.print(f"\nkey: value", style="gold1", highlight=False)
+console.print(f"\nkey: value (top level)", style="gold1", highlight=False)
 for key, value in calculator_tool_definition.items():
     print(f"{key}: {value}")
 
