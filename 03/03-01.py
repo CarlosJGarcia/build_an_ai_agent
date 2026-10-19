@@ -82,14 +82,17 @@ for key, value in calculator_tool_definition.items():
     print(f"{key}: {value}")
 
 # Tool calling calculator
+# tools: lista con un solo item, el diccionario "calculator_tool_definition"
 tools = [calculator_tool_definition]
 
+"""
 response_without_tool = completion(model='gpt-5-mini', messages=[{"role": "user", "content": "What is the capital of South Korea?"}], tools=tools)
 print(response_without_tool.choices[0].message.content)
 print(response_without_tool.choices[0].message.tool_calls)
 
-response_with_tool = completion(model='gpt-5-mini', messages=[{"role": "user", "content": "What is 1234 x 5678?"}], tools=tools)
+# response_with_tool = completion(model='gpt-5-mini', messages=[{"role": "user", "content": "What is 1234 x 5678?"}], tools=tools)
 print(response_with_tool.choices[0].message.content)
 print(response_with_tool.choices[0].message.tool_calls)
+"""
 
 print()
