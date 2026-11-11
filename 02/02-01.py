@@ -23,7 +23,7 @@ prompts = [
     ]
 
 question = prompts[1]["content"]
-console.print(f"\nAsking the model '{question}'", style="gold1", highlight=False)
+console.print(f"\nInference request to the model: '{question}'", style="gold1", highlight=False)
 
 # Inference request
 response = client.chat.completions.create(model=MODEL_NAME, messages=prompts)
@@ -31,8 +31,9 @@ clean_response = response.choices[0].message.content.strip()  # Remove trailing 
 
 print(f"Reply: {clean_response}\n")
 
-
-# for item in prompts:
-#     console.print(f"{item}", style="white", highlight=False)
-
+console.print(f"URL: {vllm_url}", style="white", highlight=False)
+console.print(f"Prompt:", style="white")
+for item in prompts:
+    console.print(f"{item}", style="white", highlight=False)
+print()
 
