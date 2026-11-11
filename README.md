@@ -12,6 +12,7 @@ To check versions run `python appendix_a/version.py`
 
 # Environment variables
 
+| Name | Description |
 |---------|------------------|
 | VLLM_SERVER_FQDN | FQDN of the workstation running Qwen 3.5 32B on vLLM |
 
@@ -37,6 +38,7 @@ Local LLMs instead of Paid APIs: To avoid worrying about API billing, I am runni
 
 # Models
 
+| Name | Description |
 |---------|------------------|
 | nvidia/Qwen3.6-35B-A3B-NVFP4 | |
 | | |
