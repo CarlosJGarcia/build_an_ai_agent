@@ -15,7 +15,6 @@ if not vllm_server_fqdn:
     raise ValueError("ERROR: VLLM_SERVER_FQDN environment variable is not set.")
 vllm_url = f"http://{vllm_server_fqdn}:8000/v1"
 
-
 console = Console()
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
 

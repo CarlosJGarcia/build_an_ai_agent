@@ -1,7 +1,7 @@
 # OpenAI’s Chat Completions API 
 # Managing conversation history
 # Demonstrate how to maintain state by passing previous history
-# By maintaining a 'messages' list and appending the LLM's replies to it after each interaction, we pass the entire conversation history back to the model with every new request, giving it the "memory" it needs.
+# By maintaining a 'messages' list and appending the LLM's replies to it after each interaction, we pass the entire conversation history to the model with every new request, giving it the "memory" it needs.
 # User messages are added with the user role (dictionary key)
 # Model responses are added with the assistant role (dictionary key)
 
@@ -10,20 +10,20 @@ import time
 from openai import OpenAI
 from rich.console import Console
 
-console = Console()
+MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
+SYSTEM_PROMPT = "You are a helpful assistant. Output plain text only. Do not use emojis or emoticons."
+
+# Read FQDN environment variable and build the VLLM URL for the model
 vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
 if not vllm_server_fqdn:
     raise ValueError("ERROR: VLLM_SERVER_FQDN environment variable is not set.")
 vllm_url = f"http://{vllm_server_fqdn}:8000/v1"
-MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
-SYSTEM_PROMPT = "You are a helpful assistant. Output plain text only. Do not use emojis or emoticons."
 
+console = Console()
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
 
-
 # Interaction #1
-print()
-console.print("Interaction #1, context provided", style="gold1", highlight=False)
+console.print(f"\nInteraction #1, context provided", style="gold1", highlight=False)
 
 messages = [{"role": "system", "content": SYSTEM_PROMPT}]                         # Initialize the message history with the system prompt. This indicates the conversational, instruction-tuned LLM, how it should answer 
 messages.append({"role": "user", "content": "My name is Carlos"})                 # Context provided by the user
