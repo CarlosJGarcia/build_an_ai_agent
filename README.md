@@ -42,3 +42,10 @@ Local LLMs instead of Paid APIs: To avoid worrying about API billing, I am runni
 |---------|------------------|
 | nvidia/Qwen3.6-35B-A3B-NVFP4 | |
 | | |
+
+# Documentation references
+
+| Name |
+|---------|
+| [OpenAI Chat Completions API](https://developers.openai.com/api/reference/chat-completions/overview) |
+| |
