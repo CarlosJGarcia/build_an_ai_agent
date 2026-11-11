@@ -10,6 +10,11 @@ pip install datasets
 
 To check versions run `python appendix_a/version.py`
 
+# Environment variables
+
+VLLM_SERVER_FQDN FQDN of the workstation running Qwen 3.5 32B on vLLM
+
+
 # My approach to the book
 
 The book’s verbatim approach:
@@ -28,3 +33,7 @@ VS Code instead of Jupyter Notebooks: I understand Jupyter is great for prototyp
 OpenAI Python SDK instead of LiteLLM: I appreciate LiteLLM’s multi-vendor routing, but both vLLM and Ollama provide OpenAI-compatible endpoints. I prefer to use the official OpenAI Python library directly rather than adding a wrapper.
 
 Local LLMs instead of Paid APIs: To avoid worrying about API billing, I am running local Qwen 3.5 32B on vLLM and Qwen 3 14B on Ollama instead of using OpenAI and Anthropic.
+
+# Models
+
+nvidia/Qwen3.6-35B-A3B-NVFP4
