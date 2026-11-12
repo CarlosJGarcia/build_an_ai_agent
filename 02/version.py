@@ -6,8 +6,8 @@ os_info = platform.freedesktop_os_release()
 ubuntu_version = os_info.get("PRETTY_NAME", "Linux")
 
 print(f"\nOS: {ubuntu_version}")
-print(f"Python version: {sys.version_info.major}.{sys.version_info.minor}")
-print(f"OpenAI API version: {openai.__version__}\n")
+print(f"Python: {sys.version_info.major}.{sys.version_info.minor}")
+print(f"OpenAI API: {openai.__version__}\n")
 
 # print("PyTorch version:", torch.__version__)
 # print("Apple Silicon acceleration:", torch.backends.mps.is_available())

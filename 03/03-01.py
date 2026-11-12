@@ -86,22 +86,44 @@ for key, value in calculator_tool_definition.items():
     print(f"{key}: {value}")
 """
 
+#1 ----------
+
 # List with one dictionary
 messages=[{"role": "user", "content": "What is the capital of South Korea?"}]
     
 # tools: lista con un solo item, el diccionario "calculator_tool_definition"
 tools = [calculator_tool_definition]
 
+question = messages[0]["content"]
+console.print(f"\nInference request to the model: '{question}' + calculator tool definition", style="gold1", highlight=False)
 
+# Inference request
 #response_without_tool = completion(model=MODEL_NAME, messages=messages, tools=tools)
 response_without_tool = client.chat.completions.create(model=MODEL_NAME, messages=messages, tools=tools)
-print(response_without_tool.choices[0].message.content)
-print(response_without_tool.choices[0].message.tool_calls)
+
+clean_response = response_without_tool.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
+print(f"Reply in 'content': {clean_response}")
+
+clean_response = response_without_tool.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
+console.print(clean_response, style="white")
+console.print(response_without_tool.choices[0].message.tool_calls, style="white")
 
 
-# response_with_tool = completion(model='gpt-5-mini', messages=[{"role": "user", "content": "What is 1234 x 5678?"}], tools=tools)
+#2 ----------
+
+# List with one dictionary
 messages=[{"role": "user", "content": "What is 1234 x 5678?"}]
+
+question = messages[0]["content"]
+console.print(f"\nInference request to the model: '{question}' + calculator tool definition", style="gold1", highlight=False)
+
+# Inference request
+# response_with_tool = completion(model='gpt-5-mini', messages=[{"role": "user", "content": "What is 1234 x 5678?"}], tools=tools)
 response_with_tool = client.chat.completions.create(model=MODEL_NAME, messages=messages, tools=tools)
-print(response_with_tool.choices[0].message.content)
-print(response_with_tool.choices[0].message.tool_calls)
+
+print(f"Reply in 'tool_calls': {response_with_tool.choices[0].message.tool_calls}")
+
+
+console.print(response_with_tool.choices[0].message.content, style="white", highlight=False)
+console.print(response_with_tool.choices[0].message.tool_calls, style="white", highlight=False)
 print()
