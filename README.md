@@ -6,6 +6,7 @@ conda activate ai_agent_scratch
 conda install -c conda-forge rich -y
 pip install openai
 pip install datasets
+pip install tavily-python
 ```
 
 To check versions run `python appendix_a/version.py`
@@ -15,6 +16,7 @@ To check versions run `python appendix_a/version.py`
 | Name | Description |
 |---------|------------------|
 | VLLM_SERVER_FQDN | FQDN of the workstation running Qwen 3.5 32B on vLLM |
+| TAVILY_API_KEY | Tavily API key |
 
 
 # My approach to the book
@@ -45,7 +47,7 @@ Local LLMs instead of Paid APIs: To avoid worrying about API billing, I am runni
 
 # Documentation references
 
-| Name |
-|---------|
-| [OpenAI Chat Completions API](https://developers.openai.com/api/reference/chat-completions/overview) |
-| |
+| Name | Description |
+|---------|---------|
+| [OpenAI Chat Completions API](https://developers.openai.com/api/reference/chat-completions/overview) | |
+| [NousResearch Hermes-function-calling-v1](https://huggingface.co/datasets/NousResearch/hermes-function-calling-v1) | Dataset with tool definitions and corresponding tool calls, used to train models for function calling |
