@@ -113,8 +113,7 @@ console.print(clean_response, style="white")
 console.print(response_without_tool.choices[0].message.tool_calls, style="white")
 
 
-#2 ----------
-
+# 2 ----------
 # List with one dictionary
 messages=[{"role": "user", "content": "What is 1234 x 5678?"}]
 
@@ -143,4 +142,41 @@ if response_with_tool.choices[0].message.tool_calls:
        if function_name == "calculator":
            result = calculator(**function_args)
 
-console.print (f"Executing the calculator tool. Result = {result:,}\n", style="gold1", highlight=False)
+console.print (f"Executing the calculator tool. Result = {result:,}", style="gold1", highlight=False)
+
+# 3 ----------
+# Feeding tool results back to the LLM, we use values 'user' (question), 'assistant' (tool call) and 'tool' (return from the tool)
+ai_message = response_with_tool.choices[0].message
+messages.append({  #1
+   "role": "assistant",  #1
+   "content": ai_message.content,  #1
+   "tool_calls": ai_message.tool_calls  #1
+})
+
+if ai_message.tool_calls:
+   for tool_call in ai_message.tool_calls:
+       function_name = tool_call.function.name  #2
+       function_args = json.loads(tool_call.function.arguments)  #2
+
+       if function_name == "calculator":
+           result = calculator(**function_args)  #2
+
+           messages.append({  #3
+               "role": "tool",  #3
+               "tool_call_id": tool_call.id,  #3
+               "content": str(result)  #3
+           })
+question = messages[0]["content"]
+tool_answer = messages[2]["content"]
+console.print(f"\nInference request to the model: '{question}' + calculator tool definition + '{tool_answer}'", style="gold1", highlight=False)
+
+
+#final_response = completion(model='gpt-5-mini', messages=messages
+final_response = client.chat.completions.create(model=MODEL_NAME, messages=messages) # We don't have to pass tools
+
+clean_response = final_response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
+print(f"Reply in 'content': {clean_response}")
+                            
+console.print(f"Messages: {messages}", style="white", highlight=False)
+clean_response = final_response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
+console.print(f"Final Answer: {clean_response}\n", style="white", highlight=False)
