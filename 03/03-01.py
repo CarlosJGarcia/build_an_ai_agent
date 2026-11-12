@@ -98,10 +98,10 @@ response_without_tool = client.chat.completions.create(model=MODEL_NAME, message
 print(response_without_tool.choices[0].message.content)
 print(response_without_tool.choices[0].message.tool_calls)
 
-"""
+
 # response_with_tool = completion(model='gpt-5-mini', messages=[{"role": "user", "content": "What is 1234 x 5678?"}], tools=tools)
+messages=[{"role": "user", "content": "What is 1234 x 5678?"}]
+response_with_tool = client.chat.completions.create(model=MODEL_NAME, messages=messages, tools=tools)
 print(response_with_tool.choices[0].message.content)
 print(response_with_tool.choices[0].message.tool_calls)
 print()
-"""
-
