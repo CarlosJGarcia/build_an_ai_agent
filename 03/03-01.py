@@ -1,5 +1,6 @@
 # Calculator tool definition schema
 # Bregenz (Austria) 10/Oct/2026
+# Reinach (Schweiz) 12/Nov/2026
 
 import os
 from openai import OpenAI
@@ -91,7 +92,7 @@ for key, value in calculator_tool_definition.items():
 # List with one dictionary
 messages=[{"role": "user", "content": "What is the capital of South Korea?"}]
     
-# tools: lista con un solo item, el diccionario "calculator_tool_definition"
+# tools: list with one item, the dictionary "calculator_tool_definition"
 tools = [calculator_tool_definition]
 
 question = messages[0]["content"]
@@ -103,6 +104,8 @@ response_without_tool = client.chat.completions.create(model=MODEL_NAME, message
 
 clean_response = response_without_tool.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
 print(f"Reply in 'content': {clean_response}")
+if clean_response != None:
+    print("The model is replying from training data")
 
 clean_response = response_without_tool.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
 console.print(clean_response, style="white")
@@ -121,9 +124,13 @@ console.print(f"\nInference request to the model: '{question}' + calculator tool
 # response_with_tool = completion(model='gpt-5-mini', messages=[{"role": "user", "content": "What is 1234 x 5678?"}], tools=tools)
 response_with_tool = client.chat.completions.create(model=MODEL_NAME, messages=messages, tools=tools)
 
-print(f"Reply in 'tool_calls': {response_with_tool.choices[0].message.tool_calls}")
-
+clean_response = str(response_with_tool.choices[0].message.tool_calls)[:120]  # Trim so it fits in one line
+print(f"Reply in 'tool_calls': {clean_response}...")
+if clean_response != None:
+    print("The model is replying with a tool call")
 
 console.print(response_with_tool.choices[0].message.content, style="white", highlight=False)
 console.print(response_with_tool.choices[0].message.tool_calls, style="white", highlight=False)
 print()
+
+# Note: When the model replies with a tool call, it resplies a JSON raw stream. The OpenAI library parses the JSON and gives back a Python object
