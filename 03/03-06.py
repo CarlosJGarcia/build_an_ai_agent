@@ -5,8 +5,12 @@ import os
 import json
 # import inspect
 from openai import OpenAI
+from datetime import date
 from tavily import TavilyClient
+from rich.console import Console
 from collections.abc import Callable
+
+
 
 from p03_04 import search_web
 from p03_05 import function_to_tool_definition
@@ -50,7 +54,7 @@ def simple_agent_loop(system_prompt: str, question: str, max_iterations: int = 1
             messages.append(assistant_message.model_dump(exclude_none=True))
             for tool_call in assistant_message.tool_calls:
                 tool_result = tool_execution(tool_box, tool_call)
-                print(f"DEBUG [Tool Output]: {tool_result}")  # <-- DEBUG CODE
+                # print(f"DEBUG [Tool Output]: {tool_result}")  # <-- DEBUG CODE
                 messages.append({
                     "role": "tool",
                     "content": str(tool_result),
@@ -71,15 +75,15 @@ if not vllm_server_fqdn:
     raise ValueError("ERROR: VLLM_SERVER_FQDN environment variable is not set.")
 vllm_url = f"http://{vllm_server_fqdn}:8000/v1"
 
-# Read Tavily key environment variable
-tavily_key = os.getenv("TAVILY_API_KEY")
-if not tavily_key:
-    raise ValueError("ERROR: TAVILY_API_KEY environment variable is not set.")
-
+console = Console()
 client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
-tavily_client = TavilyClient(tavily_key)
 
-system_prompt = """You are a helpful assistant. Use the search tool when you need current information."""
+# It is important to inject toda's date in the system prompt so the LLM doesn't assume that it can reply from the weights
+today = date.today().strftime("%B %d, %Y")
+system_prompt = f"You are a helpful assistant. Today's date is {today}. Use the search tool when you need current information."
+question = "Who won the 2026 Nobel Prize in Physics?"
 
-result = simple_agent_loop(system_prompt, "Who won the 2025 Nobel Prize in Physics?")
-print(result)
+console.print(f"\nInference request to the agent: '{question}'", style="gold1", highlight=False)
+result = simple_agent_loop(system_prompt, question)
+result = result.strip()  # Remove trailing \n in the LLM response
+print(f"Reply: {result}\n")

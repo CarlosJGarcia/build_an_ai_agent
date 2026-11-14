@@ -4,6 +4,14 @@ import os
 from tavily import TavilyClient
 from rich.console import Console
 
+# Read Tavily key environment variable
+tavily_key = os.getenv("TAVILY_API_KEY")
+if not tavily_key:
+    raise ValueError("ERROR: TAVILY_API_KEY environment variable is not set.")
+
+# Initialize the tavily_client so tavily_client.search() works when other module calls search_web()
+tavily_client = TavilyClient(tavily_key)
+
 # Web search function with options and error handling
 def search_web(query, max_results=5, topic="general", time_range=None):
     try:
