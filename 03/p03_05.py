@@ -1,4 +1,5 @@
 # Extracting tool metadata using inspect
+# Utility function to convert Python function definitions into OpenAI-style function tool definitions
 
 import inspect
 from rich.console import Console
