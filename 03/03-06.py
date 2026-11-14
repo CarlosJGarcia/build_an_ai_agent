@@ -1,8 +1,11 @@
 # The tool execution system
 # Reinach 14/Nov/2026
 
+import os
 import json
-import inspect
+# import inspect
+from openai import OpenAI
+from tavily import TavilyClient
 from collections.abc import Callable
 
 from p03_04 import search_web
@@ -35,7 +38,11 @@ def simple_agent_loop(system_prompt: str, question: str, max_iterations: int = 1
     ]
 
     for _ in range(max_iterations):
-        response = completion(model="gpt-5-mini", messages=messages, tools=tool_definitions)
+        # Inference request
+        #response = completion(model="gpt-5-mini", messages=messages, tools=tool_definitions)
+        response = client.chat.completions.create(model=MODEL_NAME, messages=messages, tools=tool_definitions)
+
+        
 
         assistant_message = response.choices[0].message
 
@@ -43,6 +50,7 @@ def simple_agent_loop(system_prompt: str, question: str, max_iterations: int = 1
             messages.append(assistant_message.model_dump(exclude_none=True))
             for tool_call in assistant_message.tool_calls:
                 tool_result = tool_execution(tool_box, tool_call)
+                print(f"DEBUG [Tool Output]: {tool_result}")  # <-- DEBUG CODE
                 messages.append({
                     "role": "tool",
                     "content": str(tool_result),
@@ -53,5 +61,25 @@ def simple_agent_loop(system_prompt: str, question: str, max_iterations: int = 1
 
     raise RuntimeError(f"Agent exceeded max_iterations ({max_iterations}) without finishing.")
 
+MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
 
-print("\nTodo bien\n")
+# Main
+
+# Read FQDN environment variable and build the VLLM URL for the model
+vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
+if not vllm_server_fqdn:
+    raise ValueError("ERROR: VLLM_SERVER_FQDN environment variable is not set.")
+vllm_url = f"http://{vllm_server_fqdn}:8000/v1"
+
+# Read Tavily key environment variable
+tavily_key = os.getenv("TAVILY_API_KEY")
+if not tavily_key:
+    raise ValueError("ERROR: TAVILY_API_KEY environment variable is not set.")
+
+client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
+tavily_client = TavilyClient(tavily_key)
+
+system_prompt = """You are a helpful assistant. Use the search tool when you need current information."""
+
+result = simple_agent_loop(system_prompt, "Who won the 2025 Nobel Prize in Physics?")
+print(result)

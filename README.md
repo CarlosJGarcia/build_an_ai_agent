@@ -1,3 +1,19 @@
+**AI engineering**
+
+- Building and training an LLM: 
+  - Feels like alchemy when it starts completing phrases
+  - Watching intelligence emerge out of matrix multiplication and gradient descent
+- Building an agent:
+  - Feels like systems plumbing
+  - It means writing deterministic while loops that use OpenAI API, JSON schemas, state management and retries
+  - It is building the hands and nervous system so the brain can interact with the world (read files, search the web, query DBs or run code)
+
+This book shows how to build a miniature agent harness. Productive professional harnesses are:
+
+- Codex CLI (OpenAI)
+- Claude Code (Anthropic)
+- Hermes Agent (Nous Research)
+
 **Environment installation** 
 
 ```bash
@@ -36,7 +52,7 @@ VS Code instead of Jupyter Notebooks: I understand Jupyter is great for prototyp
 
 OpenAI Python SDK instead of LiteLLM: I appreciate LiteLLM’s multi-vendor routing, but both vLLM and Ollama provide OpenAI-compatible endpoints. I prefer to use the official OpenAI Python library directly rather than adding a wrapper.
 
-Local LLMs instead of Paid APIs: To avoid worrying about API billing, I am running local Qwen 3.5 32B on vLLM and Qwen 3 14B on Ollama instead of using OpenAI and Anthropic.
+Local LLMs instead of Paid APIs: To avoid worrying about API billing, I am running local Qwen 3.6 35B on vLLM and Qwen 3 14B on Ollama instead of using OpenAI and Anthropic.
 
 # Models
 
