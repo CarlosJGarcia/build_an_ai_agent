@@ -2,6 +2,11 @@
 # Reinach 14/Nov/2026
 
 import json
+import inspect
+from collections.abc import Callable
+
+from p03_05 import search_web, function_to_tool_definition, tool_execution
+
 
 # Takes a toolbox (a dictionary that maps tool names to functions)
 # Takes a tool call from the LLM response
@@ -16,5 +21,21 @@ def tool_execution(tool_box, tool_call):
 
     tool_result = tool_box[function_name](**function_args)
     return tool_result
+
+# Agent loop for tool execution
+def function_to_input_schema(func: Callable):
+    type_map = {
+        str: "string",
+        int: "integer",
+        float: "number",
+        bool: "boolean",
+        list: "array",
+        dict: "object",
+        type(None): "null",
+    }
+
+    try:
+        signature = inspect.signature(func)
+    except ValueError as e:
 
 print("Todo bien")
