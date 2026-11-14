@@ -23,6 +23,7 @@ conda install -c conda-forge rich -y
 pip install openai
 pip install datasets
 pip install tavily-python
+pip install mcp
 ```
 
 To check versions run `python appendix_a/version.py`
