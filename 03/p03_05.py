@@ -56,15 +56,16 @@ def function_to_tool_definition(func: Callable):
         function_to_input_schema(func),
     )
 
+# Main
+if __name__ == "__main__":
+    console = Console()
+    console.print(f"\ndef example_tool(input_1, input_2=1):", style="gold1", highlight=False)
+    console.print(f"inspect:", style="gold1")
+    print(f"function name: {example_tool.__name__}")
+    print(f"function docstring: {example_tool.__doc__}")
+    print(f"function signature: {inspect.signature(example_tool)}")
 
-console = Console()
-console.print(f"\ndef example_tool(input_1, input_2=1):", style="gold1", highlight=False)
-console.print(f"inspect:", style="gold1")
-print(f"function name: {example_tool.__name__}")
-print(f"function docstring: {example_tool.__doc__}")
-print(f"function signature: {inspect.signature(example_tool)}")
-
-console.print(f"\nfunction_to_tool:", style="gold1", highlight=False)
-print(function_to_tool_definition(example_tool))
-print()
+    console.print(f"\nfunction_to_tool:", style="gold1", highlight=False)
+    print(function_to_tool_definition(example_tool))
+    print()
       
