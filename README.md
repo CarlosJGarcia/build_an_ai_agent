@@ -5,7 +5,7 @@
   - Watching intelligence emerge out of matrix multiplication and gradient descent
 - Building an agent:
   - Feels like systems plumbing
-  - It means writing deterministic while loops that use OpenAI API, JSON schemas, state management and retries
+  - Write deterministic while loops that use OpenAI API, MCP, JSON schemas, state management and retries
   - It is building the hands and nervous system so the brain can interact with the world (read files, search the web, query DBs or run code)
 
 This book shows how to build a miniature agent harness. Productive professional harnesses are:
