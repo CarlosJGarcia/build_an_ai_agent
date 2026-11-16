@@ -8,7 +8,7 @@
 | p03_04.py | Web search function with error handling | Tavily |
 | p03_05.py | Utility function to convert Python function definitions into OpenAI-style function tool definitions | inspect |
 | 03-06.py | The tool execution system | |
-| 03-07.py | Connect to an MCP server | mcp |
+| 03-07.py | Run Tavily MCP server, enumerate its tools, map the definitions to the OpenAI format, use one (search) and output the result in the OpenAI format | mcp |
 
 ---
 ### Notes

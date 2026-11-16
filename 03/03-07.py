@@ -1,4 +1,6 @@
-#Connecting to an MCP server
+# Connecting to an MCP server
+# Important: The point is that I use the Tavily search service, through the MCP interface, so I don't use the Tavily library
+# This program is the MCP client and at the beginning it runs the MCP Server (Tavily) using node.js
 
 import os
 import asyncio
@@ -16,14 +18,14 @@ def mcp_tools_to_openai_format(mcp_tools):
 
 # Async main
 async def main():
-    # Read Tavily key environment variable
+    # Read Tavily API key environment variable
     tavily_key = os.getenv("TAVILY_API_KEY")
     if not tavily_key:
         raise ValueError("ERROR: TAVILY_API_KEY environment variable is not set.")
 
     env = os.environ.copy()
     env["TAVILY_API_KEY"] = tavily_key
-    env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0"  # Bypass proxy certificate error
+    env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0"  # Bypass proxy certificate error (Allow self-signed certificates, disabling TLS certificate validation)
 
     # Start Tavily MCP Server
     console = Console()
@@ -41,7 +43,6 @@ async def main():
                 print(f"  - {tool.name}: {tool.description[:60]}...")
 
             # List the tools in OpenAI format
-            tools_result = await session.list_tools()
             console.print("\nAvailable tools, in OpenAI format:", style="gold1")
             openai_format_tools = mcp_tools_to_openai_format(tools_result)
             for tool in openai_format_tools:
