@@ -9,7 +9,9 @@
 | p03_05.py | Utility function to convert Python function definitions into OpenAI-style function tool definitions | inspect |
 | 03-06.py | The tool execution system | |
 | 03-07.py | Run Tavily MCP server, enumerate its tools, map the definitions to the OpenAI format, use one (search) and output the result in the OpenAI format | mcp |
-| 03-08.py |  | mcp, tavily |
+| 03-08.py | MCP server that exposes the Tavily search service. Version that prints on the screen, to show how it works | |
+| 03-09.py | MCP server that exposes the Tavily search service. This version does not print anything on screen. Just communicates with the MCP client over stdio | |
+| 03-10.py | Run homebrew MCP server that exposes Tavily web search, enumerate its tools, map the definitions to the OpenAI format, use the search and output the result in the OpenAI format | |
 
 ---
 ### Notes
