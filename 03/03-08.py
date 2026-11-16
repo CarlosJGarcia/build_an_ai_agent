@@ -2,7 +2,7 @@
 # Uses the Tavily search service through the MCP interface, doesn't use the Tavily library
 # This script is the MCP client and at the beginning it runs the MCP Server (Tavily) using node.js
 
-"""
+'''
 import os
 import asyncio
 from rich.console import Console
@@ -58,19 +58,22 @@ async def main():
 # Main -> Run the async main
 if __name__ == "__main__":
     asyncio.run(main())
-"""
+'''
 
 import os
 from tavily import TavilyClient
 # from dotenv import load_dotenv
-from mcp.server.fastmcp import FastMCP
+# from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
-"""
+
+'''
 load_dotenv()
 
 tavily_client = TavilyClient(os.getenv("TAVILY_API_KEY"))
 
-mcp = FastMCP("custom-tavily-search")
+# mcp = FastMCP("custom-tavily-search")
+mcp = MCPServer("custom-tavily-search")
 
 @mcp.tool()
 def search_web(query: str, max_results: int = 5) -> str:
@@ -99,6 +102,6 @@ def search_web(query: str, max_results: int = 5) -> str:
 
 if __name__ == "__main__":
     mcp.run(transport='stdio')
-"""
+'''
 
-print("Todo bien")
+print("\nTodo bien\n")

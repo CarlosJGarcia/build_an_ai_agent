@@ -1,6 +1,6 @@
 # Connecting to an MCP server
-# Important: The point is that I use the Tavily search service, through the MCP interface, so I don't use the Tavily library
-# This program is the MCP client and at the beginning it runs the MCP Server (Tavily) using node.js
+# Uses the Tavily search service through the MCP interface, doesn't use the Tavily library
+# This script is the MCP client and at the beginning it runs the MCP Server (Tavily) using node.js
 
 import os
 import asyncio
