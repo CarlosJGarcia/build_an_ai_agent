@@ -1,7 +1,11 @@
 # Listing 4.11 LlmClient class
 
+
+import uuid
+from datetime import datetime
 from litellm import acompletion
 from pydantic import BaseModel, Field
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Literal, Optional, Union
 
 
@@ -28,6 +32,62 @@ class ToolResult(BaseModel):
     content: list
 
 ContentItem = Union[Message, ToolCall, ToolResult]
+
+
+# Listing 4.3 Event class for execution tracking
+class Event(BaseModel):
+    """A recorded occurrence during agent execution."""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    execution_id: str
+    timestamp: float = Field(default_factory=lambda: datetime.now().timestamp())
+    author: str  # "user" or agent name
+    content: List[ContentItem] = Field(default_factory=list)
+
+
+# 4.4 Implementing ExecutionContext
+@dataclass
+class ExecutionContext:
+    """Central storage for all execution state."""
+
+    execution_id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    events: List[Event] = field(default_factory=list)
+    current_step: int = 0
+    state: Dict[str, Any] = field(default_factory=dict)
+    final_result: Optional[str | BaseModel] = None
+
+    def add_event(self, event: Event):
+        """Append an event to the execution history."""
+        self.events.append(event)
+
+    def increment_step(self):
+        """Move to the next execution step."""
+        self.current_step += 1
+
+
+# Listing 4.5 BaseTool abstract class
+class BaseTool(ABC):
+    """Abstract base class for all tools."""
+
+    def __init__(
+        self, 
+        name: str = None, 
+        description: str = None, 
+        tool_definition: Dict[str, Any] = None,
+    ):
+        self.name = name or self.__class__.__name__
+        self.description = description or self.__doc__ or ""
+        self._tool_definition = tool_definition
+
+    @property
+    def tool_definition(self) -> Dict[str, Any] | None:
+        return self._tool_definition
+
+    @abstractmethod
+    async def execute(self, context: ExecutionContext, **kwargs) -> Any:
+        pass
+
+    async def __call__(self, context: ExecutionContext, **kwargs) -> Any:
+        return await self.execute(context, **kwargs)
 
 
 # Listing 4.9 LlmRequest class
