@@ -11,6 +11,7 @@ from abc import ABC, abstractmethod
 from pydantic import BaseModel, Field
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Literal, Optional, Union
+from mcp.client.stdio import stdio_client, StdioServerParameters, ClientSession
 
 # Point Python to the folder one level up, named '03' so "from p03_05 import format_tool_definition" works
 import_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../03'))
@@ -140,7 +141,72 @@ class LlmRequest(BaseModel):
     tool_choice: Optional[str] = None
 
 
-# Listing 4.10 LlmResponse class
+# 4.7 Loading tools from MCP servers
+async def load_mcp_tools(connection: dict) -> list[BaseTool]:
+    """Load tools from an MCP server and convert to FunctionTools."""
+    tools = []
+
+    async with stdio_client(StdioServerParameters(**connection)) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            mcp_tools = await session.list_tools()
+
+            for mcp_tool in mcp_tools.tools:
+                func_tool = _create_mcp_tool(mcp_tool, connection)
+                tools.append(func_tool)
+
+    return tools
+
+
+# 4.8 Creating FunctionTool from the MCP tool
+def _create_mcp_tool(mcp_tool, connection: dict) -> FunctionTool:
+    """Create a FunctionTool that wraps an MCP tool."""
+
+    async def call_mcp(**kwargs):
+        async with stdio_client(StdioServerParameters(**connection)) as (read, write):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                result = await session.call_tool(mcp_tool.name, kwargs)
+                return _extract_text_content(result)
+
+    tool_definition = {
+        "type": "function",
+        "function": {
+            "name": mcp_tool.name,
+            "description": mcp_tool.description,
+            "parameters": mcp_tool.inputSchema,
+        }
+    }
+
+    return FunctionTool(
+        func=call_mcp,
+        name=mcp_tool.name,
+        description=mcp_tool.description,
+        tool_definition=tool_definition
+    )
+
+# Helper function missing from the book, but required
+def _extract_text_content(self, response) -> str:
+        """Extract the text content from a LiteLLM response."""
+        try:
+            # LiteLLM normalizes to OpenAI ChatCompletion format
+            message = response.choices[0].message
+            return message.content or ""
+        except (AttributeError, IndexError, KeyError):
+            # Fallback if the response format is unexpected or empty
+            return ""
+
+
+# 4.9 LlmRequest class
+class LlmRequest(BaseModel):
+    """Request object for LLM calls."""
+    instructions: List[str] = Field(default_factory=list)
+    contents: List[ContentItem] = Field(default_factory=list)
+    tools: List[BaseTool] = Field(default_factory=list)
+    tool_choice: Optional[str] = None
+
+
+# 4.10 LlmResponse class
 class LlmResponse(BaseModel):
     """Response object from LLM calls."""
     content: List[ContentItem] = Field(default_factory=list)
