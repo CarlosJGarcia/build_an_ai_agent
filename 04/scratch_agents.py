@@ -2,6 +2,7 @@
 
 
 import uuid
+import inspect
 from datetime import datetime
 from litellm import acompletion
 from pydantic import BaseModel, Field
@@ -9,7 +10,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Literal, Optional, Union
 
 
-#4.2 Content types for agent communication
+# 4.2 Content types for agent communication
 class Message(BaseModel):
     """A text message in the conversation."""
     type: Literal["message"] = "message"
@@ -34,7 +35,7 @@ class ToolResult(BaseModel):
 ContentItem = Union[Message, ToolCall, ToolResult]
 
 
-# Listing 4.3 Event class for execution tracking
+# 4.3 Event class for execution tracking
 class Event(BaseModel):
     """A recorded occurrence during agent execution."""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -64,7 +65,7 @@ class ExecutionContext:
         self.current_step += 1
 
 
-# Listing 4.5 BaseTool abstract class
+# 4.5 BaseTool abstract class
 class BaseTool(ABC):
     """Abstract base class for all tools."""
 
@@ -88,6 +89,38 @@ class BaseTool(ABC):
 
     async def __call__(self, context: ExecutionContext, **kwargs) -> Any:
         return await self.execute(context, **kwargs)
+
+
+# 4.6 FunctionTool implementation
+class FunctionTool(BaseTool):
+    """Wraps a Python function as a BaseTool."""
+
+    def __init__(self, func: Callable, name: str = None, description: str = None, tool_definition: Dict[str, Any] = None):
+        self.func = func
+        self.needs_context = 'context' in inspect.signature(func).parameters
+
+        name = name or func.__name__
+        description = description or (func.__doc__ or "").strip()
+        tool_definition = tool_definition or self._generate_definition()
+
+        super().__init__(name=name, description=description, tool_definition=tool_definition)
+
+    async def execute(self, context: ExecutionContext, **kwargs) -> Any:
+        """Execute the wrapped function."""
+        if self.needs_context:
+            result = self.func(context=context, **kwargs)
+        else:
+            result = self.func(**kwargs)
+
+        # Handle both sync and async functions
+        if inspect.iscoroutine(result):
+            return await result
+        return result
+
+    def _generate_definition(self) -> Dict[str, Any]:
+        """Generate tool definition from function signature."""
+        parameters = function_to_input_schema(self.func)
+        return format_tool_definition(self.name, self.description, parameters)
 
 
 # Listing 4.9 LlmRequest class
