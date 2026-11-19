@@ -18,7 +18,7 @@ async def main():
     # Response contains the answer
     for item in response.content:
         if isinstance(item, Message):
-            print(item.content)            # "4"
+            print(item.content)            # Response should be "4" (2+2)
 
 
 # Main -> Run the async main
