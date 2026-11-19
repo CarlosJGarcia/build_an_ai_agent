@@ -1,14 +1,22 @@
 # Listing 4.11 LlmClient class
 
 
+import os
+import sys
 import uuid
 import inspect
 from datetime import datetime
 from litellm import acompletion
+from abc import ABC, abstractmethod
 from pydantic import BaseModel, Field
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Literal, Optional, Union
 
+# Point Python to the folder one level up, named '03' so "from p03_05 import format_tool_definition" works
+import_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../03'))
+if import_dir not in sys.path:
+    sys.path.insert(0, import_dir)
+from p03_05 import format_tool_definition, function_to_input_schema
 
 # 4.2 Content types for agent communication
 class Message(BaseModel):
