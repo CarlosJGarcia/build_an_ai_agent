@@ -240,10 +240,13 @@ def _extract_text_content(result) -> str:
 
 class LlmRequest(BaseModel):
     """Request object for LLM calls."""
+    model_config = {"arbitrary_types_allowed": True}
+
     instructions: List[str] = Field(default_factory=list)
     contents: List[ContentItem] = Field(default_factory=list)
     tools: List[BaseTool] = Field(default_factory=list)
     tool_choice: Optional[str] = None
+
 
 
 # ---------------------------------------------------------------------------
