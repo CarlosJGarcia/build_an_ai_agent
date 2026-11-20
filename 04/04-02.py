@@ -2,7 +2,7 @@
 
 import os
 import asyncio
-from openai import OpenAI
+from openai import AsyncOpenAI
 from rich.console import Console
 from scratch_agents import LlmClient, LlmRequest, Message
 
@@ -19,7 +19,7 @@ async def main():
     vllm_url = f"http://{vllm_server_fqdn}:8000/v1"
 
     console = Console()
-    client = OpenAI(base_url=vllm_url, api_key="EMPTY") 
+    client = AsyncOpenAI(base_url=vllm_url, api_key="EMPTY")
 
     # List of dictionaries
     messages=[

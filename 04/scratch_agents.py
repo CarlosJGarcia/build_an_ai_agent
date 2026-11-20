@@ -6,20 +6,23 @@
 # Listing 4.11 LlmClient class
 
 
-import json
+
 import os
 import sys
+import json
 import uuid
+import asyncio
 import inspect
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Literal, Optional, Type, Union
-
-import asyncio
 from openai import AsyncOpenAI
+from abc import ABC, abstractmethod
 from pydantic import BaseModel, Field
 from dataclasses import dataclass, field
-from abc import ABC, abstractmethod
-from mcp.client.stdio import stdio_client, StdioServerParameters, ClientSession
+from mcp.client.session import ClientSession
+from mcp.client.stdio import stdio_client, StdioServerParameters
+from typing import Any, Callable, Dict, List, Literal, Optional, Type, Union
+
+
 
 # Point Python to the folder one level up, named '03' so from p03_05 import format_tool_definition works
 import_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../03'))
