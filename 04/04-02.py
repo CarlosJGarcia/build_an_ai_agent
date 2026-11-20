@@ -11,25 +11,10 @@ SYSTEM_PROMPT = "You are a helpful assistant. Output plain text only. Do not use
 async def main():
 
     console = Console()
-
-    '''
-    # Read FQDN environment variable and build the VLLM URL for the model
-    vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
-    if not vllm_server_fqdn:
-        raise ValueError("ERROR: VLLM_SERVER_FQDN environment variable is not set.")
-    vllm_url = f"http://{vllm_server_fqdn}:8000/v1"
-    '''
-    
+     
     # client = AsyncOpenAI(base_url=vllm_url, api_key="EMPTY")
     client = LlmClient(model=MODEL_NAME)
 
-    # List of dictionaries
-    '''
-    messages=[
-        {"role": "system", "content": SYSTEM_PROMPT},              # How the conversational, instruction-tuned LLM should answer
-        {"role": "user", "content": "What is 2 + 2?"}              # The specific question to be answered
-    ]
-    '''
     question = "What is 2 + 2?"
     console.print(f"\nInference request to the model: '{question}'", style="gold1", highlight=False)
 

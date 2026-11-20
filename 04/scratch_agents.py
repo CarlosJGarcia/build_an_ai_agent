@@ -2,11 +2,6 @@
 # It forces the LLM into a continuous loop
 # This requires bundling a massive amount of logic together at once
 
-
-# Listing 4.11 LlmClient class
-
-
-
 import os
 import sys
 import json
@@ -21,8 +16,6 @@ from dataclasses import dataclass, field
 from mcp.client.session import ClientSession
 from mcp.client.stdio import stdio_client, StdioServerParameters
 from typing import Any, Callable, Dict, List, Literal, Optional, Type, Union
-
-
 
 # Point Python to the folder one level up, named '03' so from p03_05 import format_tool_definition works
 import_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../03'))
@@ -121,21 +114,22 @@ class BaseTool(ABC):
 
 class FunctionTool(BaseTool):
 
-    def __init__(
-        self, 
-        func: Callable, 
-        name: str = None, 
-        description: str = None,
-        tool_definition: Dict[str, Any] = None,
-    ):
+    def __init__(self, func: Callable, name: str = None, description: str = None, tool_definition: Dict[str, Any] = None):
         self.func = func
         self.needs_context = 'context' in inspect.signature(func).parameters
 
         name = name or func.__name__
         description = description or (func.__doc__ or '').strip()
-        tool_definition = tool_definition or self._generate_definition()
+        
+        # 1. Initialize the BaseTool FIRST so self.name and self.description are created
+        super().__init__(name=name, description=description, tool_definition=tool_definition)
+
+        # 2. THEN generate the definition if it wasn't provided
+        if not self._tool_definition:
+            self._tool_definition = self._generate_definition()
 
         super().__init__(name=name, description=description, tool_definition=tool_definition)
+
 
     async def execute(self, context: ExecutionContext, **kwargs) -> Any:
         if self.needs_context:
@@ -245,8 +239,7 @@ class LlmRequest(BaseModel):
     instructions: List[str] = Field(default_factory=list)
     contents: List[ContentItem] = Field(default_factory=list)
     tools: List[BaseTool] = Field(default_factory=list)
-    tool_choice: Optional[str] = None
-
+    tool_choice: Optional[Union[str, dict]] = None
 
 
 # ---------------------------------------------------------------------------
@@ -302,7 +295,9 @@ class LlmClient:
 
             return self._parse_response(response)
         except Exception as e:
+            print(f"\n[DEBUG] API Exception: {e}\n")
             return LlmResponse(error_message=str(e))
+
 
     # ------------------------------------------------------------------
     # 4.12 Building messages for the LLM API
@@ -412,15 +407,35 @@ class Agent:
         self.output_tool_name = None
         self.tools = self._setup_tools(tools or [])
 
-    def _setup_tools(self, tools: List[BaseTool]) -> List[BaseTool]:
+
+    def _setup_tools(self, tools: List[BaseTool]):
         """Prepare tools and optionally create a dynamic final_answer tool."""
         if self.output_type is not None:
+            
+            # 1. Map the parameters EXACTLY to the Pydantic schema (no nesting)
+            raw_schema = self.output_type.model_json_schema()
+            raw_schema.pop("title", None) # vLLM often crashes if it sees 'title'
+            raw_schema.pop("description", None)
+            
+            schema_def = {
+                'type': 'function',
+                'function': {
+                    'name': 'final_answer',
+                    'description': 'Return the final structured answer matching the required schema.',
+                    'parameters': raw_schema
+                }
+            }
+
+
+            # 2. Use **kwargs so the function accepts the flat dictionary fields
             @tool(
                 name='final_answer',
                 description='Return the final structured answer matching the required schema.',
+                tool_definition=schema_def
             )
-            def final_answer(output: Any):
-                return output
+            def final_answer(**kwargs):
+                # 3. Pass the fields directly into the Pydantic model
+                return self.output_type(**kwargs)
 
             tools = list(tools)
             tools.append(final_answer)
@@ -428,11 +443,9 @@ class Agent:
 
         return tools
 
-    async def run(
-        self,
-        user_input: str,
-        context: ExecutionContext = None
-    ) -> AgentResult:
+
+
+    async def run(self, user_input: str, context: ExecutionContext = None) -> AgentResult:
         """Entry point for agent execution."""
         if context is None:
             context = ExecutionContext()
@@ -452,6 +465,7 @@ class Agent:
 
         return AgentResult(output=context.final_result, context=context)
 
+
     def _is_final_response(self, event: Event) -> bool:
         """Check if this event contains a final response."""
         if self.output_tool_name:
@@ -465,6 +479,7 @@ class Agent:
         has_tool_calls = any(isinstance(c, ToolCall) for c in event.content)
         has_tool_results = any(isinstance(c, ToolResult) for c in event.content)
         return not has_tool_calls and not has_tool_results
+
 
     def _extract_final_result(self, event: Event) -> str | BaseModel:
         if self.output_tool_name:
@@ -510,12 +525,11 @@ class Agent:
         for event in context.events:
             flat_contents.extend(event.content)
 
-        if self.output_tool_name:
-            tool_choice = 'required'
-        elif self.tools:
+        if self.tools:
             tool_choice = 'auto'
         else:
             tool_choice = None
+
 
         return LlmRequest(
             instructions=[self.instructions] if self.instructions else [],
