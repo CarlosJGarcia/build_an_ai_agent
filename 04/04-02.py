@@ -1,8 +1,6 @@
 # 4.14 Using the LLM communication layer
 
-import os
 import asyncio
-from openai import AsyncOpenAI
 from rich.console import Console
 from scratch_agents import LlmClient, LlmRequest, Message
 
@@ -12,26 +10,39 @@ SYSTEM_PROMPT = "You are a helpful assistant. Output plain text only. Do not use
 # Async main
 async def main():
 
+    console = Console()
+
+    '''
     # Read FQDN environment variable and build the VLLM URL for the model
     vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
     if not vllm_server_fqdn:
         raise ValueError("ERROR: VLLM_SERVER_FQDN environment variable is not set.")
     vllm_url = f"http://{vllm_server_fqdn}:8000/v1"
-
-    console = Console()
-    client = AsyncOpenAI(base_url=vllm_url, api_key="EMPTY")
+    '''
+    
+    # client = AsyncOpenAI(base_url=vllm_url, api_key="EMPTY")
+    client = LlmClient(model=MODEL_NAME)
 
     # List of dictionaries
+    '''
     messages=[
         {"role": "system", "content": SYSTEM_PROMPT},              # How the conversational, instruction-tuned LLM should answer
         {"role": "user", "content": "What is 2 + 2?"}              # The specific question to be answered
     ]
+    '''
+    question = "What is 2 + 2?"
+    console.print(f"\nInference request to the model: '{question}'", style="gold1", highlight=False)
 
-    response = await client.chat.completions.create(model=MODEL_NAME, messages=messages)
-    clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
+    # Inference request
+    request = LlmRequest(instructions=[SYSTEM_PROMPT], contents=[Message(role="user", content=question)])
+    response = await client.generate(request)
+    
     
     # Response contains the answer
-    print(clean_response)                     # Response should be "4" (2+2)
+    for item in response.content:
+        if isinstance(item, Message) and item.role == "assistant":
+            clean_response = item.content.strip()
+            print(f"Reply: {clean_response}\n")                     # Response should be "4" (2+2)
 
 
 # Main -> Run the async main
