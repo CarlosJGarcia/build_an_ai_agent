@@ -568,23 +568,6 @@ class Agent:
         return results
 
 
-# ---------------------------------------------------------------------------
-# display_trace utility - for Jupyter notebook visualization
-# ---------------------------------------------------------------------------
-
-def display_trace(context: ExecutionContext) -> None:
-    """Display a human-readable execution trace in Jupyter notebooks."""
-    print(f'\n=== Execution Trace (step {context.current_step}) ===\n')
-    for i, event in enumerate(context.events):
-        print(f'[Event {i}] Author: {event.author}')
-        for item in event.content:
-            if isinstance(item, Message):
-                print(f'  Message ({item.role}): {item.content[:200]}')
-            elif isinstance(item, ToolCall):
-                print(f'  ToolCall: {item.name}({json.dumps(item.arguments, default=str)})')
-            elif isinstance(item, ToolResult):
-                print(f'  ToolResult ({item.name}, {item.status}): {item.content}')
-
 
 # ---------------------------------------------------------------------------
 # 4.8 GAIA benchmark evaluation helpers

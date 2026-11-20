@@ -28,9 +28,10 @@ async def main():
     ]
 
     response = await client.chat.completions.create(model=MODEL_NAME, messages=messages)
+    clean_response = response.choices[0].message.content.strip()  # Remove trailing \n in the LLM response
     
     # Response contains the answer
-    print(response.choices[0].message.content)                     # Response should be "4" (2+2)
+    print(clean_response)                     # Response should be "4" (2+2)
 
 
 # Main -> Run the async main
