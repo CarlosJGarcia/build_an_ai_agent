@@ -1,3 +1,8 @@
+# Code to build a ReAct (Reason + Act) agent
+# It forces the LLM into a continuous loop
+# This requires bundling a massive amount of logic together at once
+
+
 # Listing 4.11 LlmClient class
 
 
@@ -10,7 +15,7 @@ from datetime import datetime
 from typing import Any, Callable, Dict, List, Literal, Optional, Type, Union
 
 import asyncio
-from litellm import acompletion
+from openai import AsyncOpenAI
 from pydantic import BaseModel, Field
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
@@ -254,11 +259,22 @@ class LlmResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 class LlmClient:
-    """Client for LLM API calls using LiteLLM."""
+    """Client for LLM API calls using OpenAI."""
 
     def __init__(self, model: str, **config):
         self.model = model
         self.config = config
+        self._client: AsyncOpenAI | None = None
+
+    @property
+    def _openai(self) -> AsyncOpenAI:
+        if self._client is None:
+            vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
+            if not vllm_server_fqdn:
+                raise ValueError("VLLM_SERVER_FQDN environment variable is not set.")
+            vllm_url = f"http://{vllm_server_fqdn}:8000/v1"
+            self._client = AsyncOpenAI(base_url=vllm_url, api_key="EMPTY")
+        return self._client
 
     async def generate(self, request: LlmRequest) -> LlmResponse:
         """Generate a response from the LLM."""
@@ -266,12 +282,15 @@ class LlmClient:
             messages = self._build_messages(request)
             tools = [t.tool_definition for t in request.tools] if request.tools else None
 
-            response = await acompletion(
+            response = await self._openai.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 tools=tools,
-                **({'tool_choice': request.tool_choice}
-                   if request.tool_choice else {}),
+                **(
+                    {'tool_choice': request.tool_choice}
+                    if request.tool_choice
+                    else {}
+                ),
                 **self.config
             )
 
