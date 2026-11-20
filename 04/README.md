@@ -3,8 +3,10 @@
 | File | Description | Notes |
 |---------|------------------|----------------|
 | 04-01.py | Skeleton exaple code, shows the architecture but not meant to be run | |
-| 04-02.py | Basic ReAct agent harness | |
-| scratch_agents.py | Class definitions for 04-02.py basic ReAct agent harness | |
+| scratch_agents.py | Class definitions for the basic ReAct agent harness | |
+| 04-02.py | Basic ReAct agent harness - Listing 4.14 Using the LLM communication layer | |
+| 04-03.py | Basic ReAct agent harness | |
+
 
 ---
 ### Notes

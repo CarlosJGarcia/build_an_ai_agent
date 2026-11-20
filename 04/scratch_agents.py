@@ -419,7 +419,7 @@ class Agent:
                 name='final_answer',
                 description='Return the final structured answer matching the required schema.',
             )
-            def final_answer(output: self.output_type) -> self.output_type:
+            def final_answer(output: Any):
                 return output
 
             tools = list(tools)
