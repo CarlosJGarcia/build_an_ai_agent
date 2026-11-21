@@ -26,7 +26,7 @@ pip install tavily-python
 pip install mcp
 ```
 
-To check versions run `python appendix_a/version.py`
+To check versions run `python 02/version.py`
 
 # Environment variables
 
