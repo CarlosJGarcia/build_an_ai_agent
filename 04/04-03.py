@@ -27,7 +27,7 @@ async def main():
 
     # Sentiment analysis request
     text = "This product exceeded my expectations! Highly recommend."
-    console.print(f"\nSentiment analysis to the model. Text: '{text}'", style="gold1", highlight=False)
+    console.print(f"\nSentiment analysis (Agent) to the agent for text: '{text}'", style="gold1", highlight=False)
     result = await agent.run(text)
 
     # Access the structured data safely

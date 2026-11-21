@@ -16,7 +16,7 @@ async def main():
     client = LlmClient(model=MODEL_NAME)
 
     question = "What is 2 + 2?"
-    console.print(f"\nInference request to the model: '{question}'", style="gold1", highlight=False)
+    console.print(f"\nInference request (LlmClient) to the model: '{question}'", style="gold1", highlight=False)
 
     # Inference request
     request = LlmRequest(instructions=[SYSTEM_PROMPT], contents=[Message(role="user", content=question)])
