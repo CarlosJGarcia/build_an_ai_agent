@@ -16,11 +16,11 @@
 | 02-07-01_loop.sh | | | |
 | 02-07-02.py | | | |
 | 02-07-03.py | | | |
-| 02-07.py | | | |
+| 02-07.py | Load GAIA dataset Level 1 questions and evaluate two OpenAI-compatible LLMs | | |
 | aichat.py | | | |
 
 
 ---
 ### Notes
 
-Molecule:
+- Use this section to add any additional notes or insights

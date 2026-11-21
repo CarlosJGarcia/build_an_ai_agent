@@ -204,7 +204,7 @@ def _create_mcp_tool(mcp_tool, connection: dict) -> FunctionTool:
         'function': {
             'name': mcp_tool.name,
             'description': mcp_tool.description,
-            'parameters': mcp_tool.inputSchema,
+            'parameters': mcp_tool.input_schema,        # Changed from mcp_tool.inputSchema in the book
         }
     }
 
@@ -606,9 +606,11 @@ Return your result as a structured GaiaOutput with:
 
 """
 
+# ---------------------------------------------------------------------------
+# Listing 4.32 Solving problems with an agent
+# ---------------------------------------------------------------------------
 
 SEMAPHORE = asyncio.Semaphore(3)
-
 
 async def solve_problem(agent: Agent, question: str) -> AgentResult:
     """Solve a single GAIA problem with concurrency control."""
@@ -655,6 +657,7 @@ async def run_experiment(
     return all_results
 
 
+# Listing 4.31 Creating the GAIA evaluation agent
 def create_gaia_agent(model: str, tools: list) -> Agent:
     """Create an agent configured for GAIA evaluation."""
     return Agent(

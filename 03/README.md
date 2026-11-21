@@ -1,4 +1,4 @@
-# Chapter 02 Tracker
+# Chapter 03 Tracker
 
 | File | Description | Notes |
 |---------|------------------|----------------|
@@ -16,4 +16,4 @@
 ---
 ### Notes
 
-Molecule:
+- Use this section to add any additional notes or insights
