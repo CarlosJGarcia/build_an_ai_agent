@@ -5,8 +5,8 @@
 | 1. What is an AI agent? | Completed | 03/Apr/2026 | Introduction |
 | 2. The brain of AI agents: LLMs | Completed | 23/May/2026  | |
 | 3. Enabling actions: Tool use | Completed | 16/Nov/2026 | |
-| 4. Implementing a basic ReAct agent | Ongoing | | |
-| 5. Building knowledge bases with RAG | | | |
+| 4. Implementing a basic ReAct agent | Completed | 21/Nov/2026 | |
+| 5. Building knowledge bases with RAG | Ongoing | | |
 | 6. Adding memory to your agent | | | |
 | 7. Planning and reflection for complex tasks | | | |
 | 8. Empowering agents with code execution | | | |
