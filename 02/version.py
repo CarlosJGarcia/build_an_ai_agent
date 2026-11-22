@@ -1,4 +1,5 @@
 import openai
+import numpy as np
 import datasets
 import sys, platform
 import importlib.metadata
@@ -9,6 +10,7 @@ ubuntu_version = os_info.get("PRETTY_NAME", "Linux")
 
 print(f"\nOS: {ubuntu_version}")
 print(f"Python: {sys.version_info.major}.{sys.version_info.minor}")
+print(f"Numpy: {np.__version__}")
 print(f"OpenAI API: {openai.__version__}")
 print(f"Datasets API: {datasets.__version__}")
 print(f"Tavily API: {importlib.metadata.version('tavily-python')}")  # There is no attribute tavily.__version__ in Tavily :-(
