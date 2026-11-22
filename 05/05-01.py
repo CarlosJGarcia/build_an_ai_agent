@@ -47,4 +47,4 @@ print(f"Are ranked correctly: {ranked_ok}")
 
 # Measure the relative gap or ratio
 print(f"Diff: {(cat_kitten - cat_dog):.3f}")  # Expected+0.249
-print(f"Ratio: {(cat_kitten / cat_dog):.3f}") # Expected 1.84x more similar
+print(f"Ratio: {(cat_kitten / cat_dog):.3f}\n") # Expected 1.84x more similar

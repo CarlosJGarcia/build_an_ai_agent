@@ -1,8 +1,10 @@
 import openai
 import numpy as np
 import datasets
+import tiktoken
 import sys, platform
 import importlib.metadata
+
 # import torch
 
 os_info = platform.freedesktop_os_release()
@@ -10,11 +12,12 @@ ubuntu_version = os_info.get("PRETTY_NAME", "Linux")
 
 print(f"\nOS: {ubuntu_version}")
 print(f"Python: {sys.version_info.major}.{sys.version_info.minor}")
-print(f"Numpy: {np.__version__}")
-print(f"OpenAI API: {openai.__version__}")
-print(f"Datasets API: {datasets.__version__}")
-print(f"Tavily API: {importlib.metadata.version('tavily-python')}")  # There is no attribute tavily.__version__ in Tavily :-(
-print(f"MCP API: {importlib.metadata.version('mcp')}\n")             # There is no attribute mcp.__version__ in MCP :-(
+print(f"NumPy library: {np.__version__}")
+print(f"Tiktoken library: {tiktoken.__version__}")
+print(f"Datasets library: {datasets.__version__}")
+print(f"OpenAI API SDK: {openai.__version__}")
+print(f"Tavily API SDK: {importlib.metadata.version('tavily-python')}")  # There is no attribute tavily.__version__ in Tavily :-(
+print(f"MCP SDK: {importlib.metadata.version('mcp')}\n")             # There is no attribute mcp.__version__ in MCP :-(
 
 
 
