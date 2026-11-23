@@ -24,11 +24,19 @@ def embed(text, model=MODEL_NAME):
     return np.array(response.data[0].embedding)
 
 # Comparing embedding similarity
-sentence = "The quick brown fox jumps over the lazy dog"
+sentence = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
 console=Console()
 console.print(f"\nEmbedding request to the model {MODEL_NAME}", style="gold1", highlight=False)
-embeddings = embed(sentence)
+embedding = embed(sentence)
+print(f"Sentence: {sentence}")
+print(f"Embedding: {embedding}")
+print(f"Embedding dimensions: {embedding.ndim}")
+print(f"Embedding shape: {embedding.shape}")
+print(f"Embedding size: {embedding.size}")
+print(f"Embedding dtype: {embedding.dtype}\n")
 
 # Embedding is the mathematical format used to capture the semantic meaning of test
-# Vector database stores embeddings. It is the specialized engine built to store, index and search that specific format
+# An embedding is a 1-dimension vector 2560 items long, each item is a float64 number
 # Embeddings are too computationally heavy to search at scale without a vector database
+# A vector database stores embeddings. It is the specialized engine built to store, index and search that specific format
+# Vector databases: FAISS, Chroma, pgvector
