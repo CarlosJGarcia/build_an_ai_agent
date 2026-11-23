@@ -31,13 +31,14 @@ def get_embeddings(texts, model=MODEL_NAME):
 # Comparing embedding similarity
 sentences = ["The cat is sleeping on the couch", "A kitten is playing with a toy", "The dog is running in the park"]
 console=Console()
-console.print("\nEmbedding request to the model", style="gold1", highlight=False)
+console.print(f"\nEmbedding request to the model {MODEL_NAME}", style="gold1", highlight=False)
 embeddings = get_embeddings(sentences)
 
 # Since OpenAI and Qwen embeddings are already normalized to unit length, the dot product (@) is the cosine similarity
 cat_kitten = embeddings[0] @ embeddings[1] # Calculates the cosine similarity between embedding vectors
 cat_dog = embeddings[0] @ embeddings[2]    # Calculates the cosine similarity between embedding vectors
 
+console.print(f"Results:", style="gold1")
 print(f"Cat vs Kitten: {cat_kitten:.3f}")  # Expected 0.3 - 0.5
 print(f"Cat vs Dog: {cat_dog:.3f}")        # Expected 0.2
 
