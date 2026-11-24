@@ -71,3 +71,4 @@ Local LLMs instead of Paid APIs: To avoid worrying about API billing, I am runni
 |---------|---------|
 | [OpenAI Chat Completions API](https://developers.openai.com/api/reference/chat-completions/overview) | |
 | [NousResearch Hermes-function-calling-v1](https://huggingface.co/datasets/NousResearch/hermes-function-calling-v1) | Dataset with tool definitions and corresponding tool calls, used to train models for function calling |
+| [Qwen 3 Embedding](https://qwen.ai/blog?id=qwen3-embedding) | Text Embedding and Reranking Through Foundation Models | 
