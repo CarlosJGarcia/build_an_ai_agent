@@ -1,3 +1,18 @@
+**Environment installation** 
+
+```bash
+conda create -n ai_agent_scratch python=3.13 -y 
+conda activate ai_agent_scratch 
+conda install -c conda-forge rich -y
+pip install openai
+pip install datasets
+pip install tavily-python
+pip install mcp
+```
+
+To check versions run `python 02/version.py`
+
+
 **AI engineering**
 
 - Building and training an LLM: 
@@ -14,26 +29,14 @@ This book shows how to build a miniature agent harness. Productive professional 
 - Claude Code (Anthropic)
 - Hermes Agent (Nous Research)
 
-**Environment installation** 
-
-```bash
-conda create -n ai_agent_scratch python=3.13 -y 
-conda activate ai_agent_scratch 
-conda install -c conda-forge rich -y
-pip install openai
-pip install datasets
-pip install tavily-python
-pip install mcp
-```
-
-To check versions run `python 02/version.py`
 
 # Environment variables
 
 | Name | Description |
 |---------|------------------|
-| VLLM_SERVER_FQDN | FQDN of the workstation running Qwen 3.5 32B on vLLM |
 | TAVILY_API_KEY | Tavily API key |
+| VLLM_SERVER_FQDN | FQDN of the workstation running Qwen 3.5 32B on vLLM |
+| OLLAMA_SERVER_FQDN | FQDN of the workstation running Qwen 3 Embedding 4B on Ollama |
 
 
 # My approach to the book
@@ -60,7 +63,7 @@ Local LLMs instead of Paid APIs: To avoid worrying about API billing, I am runni
 | Name | Description |
 |---------|------------------|
 | nvidia/Qwen3.6-35B-A3B-NVFP4 | |
-| | |
+| qwen3-embedding:4b | |
 
 # Documentation references
 

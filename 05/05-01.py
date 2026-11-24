@@ -40,3 +40,9 @@ print(f"Embedding dtype: {embedding.dtype}\n")
 # Embeddings are too computationally heavy to search at scale without a vector database
 # A vector database stores embeddings. It is the specialized engine built to store, index and search that specific format
 # Vector databases: FAISS, Chroma, pgvector
+
+# embedding_2560 = [0.0123, -0.0456, 0.0891, ...]  2,560 numbers, single bracket level
+# full_vec = np.array(embedding_2560, dtype=np.float64)
+# Dimensions: 1D (full_vec.ndim == 1)
+# Shape / Items: 2,560 items (full_vec.shape == (2560,))
+# Data type: float64 (full_vec.dtype == dtype('float64'))
