@@ -1,0 +1,53 @@
+# Chapter 05 Tracker
+
+| File | Description | Notes |
+|---------|------------------|----------------|
+| | | |
+
+---
+### Install the default Ollama Qwen 3 Embedding 4B (Q4 quantization = 4-bit integers)
+
+```bash
+ollama run qwen3-embedding:4b
+ollama show qwen3-embedding:4b
+  Model
+    architecture        qwen3
+    parameters          4.0B 
+    context length      40960
+    embedding length    2560 
+    quantization        Q4_K_M
+```
+
+In Python code: MODEL_NAME = "qwen3-embedding:4b"
+
+---
+### Install the real Qwen 3 Embedding 4B (No quantization, F16 = 16-bit floating-point) in Ollama
+
+```bash
+ollama pull hf.co/Qwen/Qwen3-Embedding-4B-GGUF:F16
+
+# Create a Modelfile that sets the full 32K context window by default
+cat << 'EOF' > Modelfile
+FROM hf.co/Qwen/Qwen3-Embedding-4B-GGUF:F16
+PARAMETER num_ctx 32768
+EOF
+
+# Build alias
+ollama create qwen3-embedding:4b-f16-32k -f Modelfile
+
+# Tidy up $ ollama list (the weights are not removed as long as the alias is there)
+ollama rm hf.co/Qwen/Qwen3-Embedding-4B-GGUF:F16
+
+ollama show qwen3-embedding:4b-f16-32k
+  Model
+    architecture        qwen3    
+    parameters          4.0B     
+    context length      40960    
+    embedding length    2560     
+    quantization        F16      
+
+  Parameters
+    num_ctx    32768  
+```
+8 GB weigths + 4 GB Context buffer (32768 KV Cache) + 1.5 GB CUDA = 14 GB VRAM (85% of the RTX 5060 Ti 16 GB RAM )   \
+In Python code: MODEL_NAME = "qwen3-embedding:4b-f16-32k" 

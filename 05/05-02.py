@@ -6,7 +6,8 @@ import numpy as np
 from openai import OpenAI
 from rich.console import Console
 
-MODEL_NAME = "qwen3-embedding:4b"
+# MODEL_NAME = "qwen3-embedding:4b"
+MODEL_NAME = "qwen3-embedding:4b-f16-32k" 
 
 # Read FQDN environment variable and build the Ollama URL for the model
 ollama_server_fqdn = os.getenv("OLLAMA_SERVER_FQDN")

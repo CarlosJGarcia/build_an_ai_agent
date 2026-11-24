@@ -1,12 +1,15 @@
 # RAG Retrieval Augmented Generation
-# Define the embed() function
+# Define the embed() function, using Qwen 3 Embeddings
+# Converts any text (max size 32K tokens) into a list of 2.560 floating-point numbers
+# Internally, for tokenization, Quen 3 Embedding uses the Hugging Face tokenizers library, instead of OpenAI tiktoken
 
 import os
 import numpy as np
 from openai import OpenAI
 from rich.console import Console
 
-MODEL_NAME = "qwen3-embedding:4b"
+# MODEL_NAME = "qwen3-embedding:4b"
+MODEL_NAME = "qwen3-embedding:4b-f16-32k" 
 
 # Read FQDN environment variable and build the Ollama URL
 ollama_server_fqdn = os.getenv("OLLAMA_SERVER_FQDN")
@@ -36,7 +39,8 @@ print(f"Embedding size: {embedding.size}")
 print(f"Embedding dtype: {embedding.dtype}\n")
 
 # Embedding is the mathematical format used to capture the semantic meaning of test
-# An embedding is a 1-dimension vector 2560 items long, each item is a float64 number
+# Embedding = Convert a text (single word, phrase, paragraph, book) into a list of floating-point numbers of specific lenght
+# When using Qwen 3 and numpy, an embedding is a 1-dimension vector 2560 items long, each item is a float64 number
 # Embeddings are too computationally heavy to search at scale without a vector database
 # A vector database stores embeddings. It is the specialized engine built to store, index and search that specific format
 # Vector databases: FAISS, Chroma, pgvector

@@ -3,7 +3,8 @@ import numpy as np
 from openai import OpenAI
 from rich.console import Console
 
-MODEL_NAME = "qwen3-embedding:4b"
+# MODEL_NAME = "qwen3-embedding:4b"
+MODEL_NAME = "qwen3-embedding:4b-f16-32k" 
 
 # Read FQDN environment variable and build the Ollama URL for the model
 ollama_server_fqdn = os.getenv("OLLAMA_SERVER_FQDN")
@@ -34,7 +35,7 @@ def cosine_similarity(a, b):
 
 def vector_search(query, chunks, chunk_embeddings, top_k=3):
     """Find the most similar chunks to the query."""
-    console.print("\nEmbedding request to the model", style="gold1", highlight=False)
+    console.print(f"\nEmbedding request to the model ({MODEL_NAME})", style="gold1", highlight=False)
     query_embedding = get_embeddings(query)
     similarities = cosine_similarity(query_embedding, chunk_embeddings)[0]
     top_indices = similarities.argsort()[::-1][:top_k]
