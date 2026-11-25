@@ -54,4 +54,9 @@ ollama show qwen3-embedding:4b-f16-32k
     num_ctx    32768  
 ```
 8 GB weigths + 4 GB Context buffer (32768 KV Cache) + 1.5 GB CUDA = 14 GB VRAM (85% of the RTX 5060 Ti 16 GB RAM )   \
-In Python code: MODEL_NAME = "qwen3-embedding:4b-f16-32k" 
+In Python code: MODEL_NAME = "qwen3-embedding:4b-f16-32k"    \
+   \
+Why the "real" Qwen 3 Embedding 4B (no quantization, F16 weights) runs faster than the default Ollama Qwen 3 Embedding 4B (Q4 quantization)   \ 
+- With F16, weights are loaded directly from GDDR7 VRAM straight into the FP16 Tensor Cores of the RTX 5060 Ti (Blackwell).
+- With Q4, GPU Tensor Cores cannot natively multiply 4-bit directly. The CUDA cores must first dequantize (Q4 -> FP16) the weights and then feed them to the Tensor Cores.
+- Quantization saves lots of VRAM but the dequantization math slows down execution compared to native F16 weights that go straight through.
