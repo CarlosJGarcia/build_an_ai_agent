@@ -1,6 +1,8 @@
-import pymupdf
+import os
+import sys
 import base64
 import shutil
+import pymupdf
 import zipfile
 import pandas as pd
 from tqdm import tqdm
@@ -10,6 +12,13 @@ from rich.console import Console
 from datasets import load_dataset
 from huggingface_hub import snapshot_download
 
+# Point Python to the folder one level up, named '04' so from p03_05 import format_tool_definition works
+import_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../04'))
+if import_dir not in sys.path:
+    sys.path.insert(0, import_dir)
+from scratch_agents.tools import tool
+from scratch_agents.agent import Agent
+
 
 def reset_workspace():
     """Restore the workspace to its initial state."""
@@ -18,6 +27,7 @@ def reset_workspace():
 
 
 # unzip_file() tool
+@tool
 def unzip_file(zip_path: str, extract_to: str = None) -> str:
     """Extract a zip file to the specified directory."""
     zip_path = Path(zip_path)
@@ -231,6 +241,10 @@ PDF_EXTENSIONS = ['.pdf']
 TEXT_EXTENSIONS = ['.txt', '.py', '.js', '.json', '.md', '.html', 
                    '.css', '.xml', '.yaml', '.yml', '.log', '.sh']
 
+
+# Configure with existing tools
+tools = [search_web, unzip_file, list_files, read_file, read_media_file]
+agent = Agent(model=LlmClient(model="gpt-5"), tools=tools, instructions="You are a helpful assistant that can search the web and explore files to answer questions.", max_steps=20)
 
 # 5.12 Load the GAIA dataset with attachments (as in Chapter 2)
 dataset = load_dataset(REPOSITORY, "2023_all", split="validation")
