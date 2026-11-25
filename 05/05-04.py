@@ -54,15 +54,24 @@ documents = [
     "Python is a programming language",
     "Machine learning uses Python extensively", 
     "Cats are popular pets",
-    "Deep learning is a subset of machine learning"
+    "Deep learning is a subset of machine learning",
+    "Paris is the capital of france",
+    "The Qwen3 Embedding series offer support for over 100 languages, thanks to the multilingual capabilites of Qwen3 models. This includes various programming languages, and provides robust multilingual, cross-lingual, and code retrieval capabilities.",
+    "We shipped your order on 13.11.2026. It is important to us that you were satisfied with our shipment. We would very much appreciate your feedback so that we can improve our services",
+    "Eigentlich ist die Gefahrenstufe allein sogar die falsche Frage. Viel wichtiger ist: Welches Lawinenproblem haben wir heute, wo liegt es und welches Gelände passt dazu?",
+    "La coalición evita cualquier tensión y muestra sintonía en la presentación de un paquete millonario de políticas como el impuesto a la banca, la rebaja de autónomos y el permiso por fallecimiento",
+    "Les gladiateurs étaient des combattants professionnels de la Rome antique, le plus souvent des esclaves, des prisonniers de guerre ou des volontaires, qui s'affrontaient dans de grands amphithéâtres comme le Colisée pour divertir le public."
 ]
 
 console = Console()
 doc_embeddings = get_embeddings(documents)
 
-query = "Artificial Intelligence"
-results = vector_search(query, documents, doc_embeddings, top_k=4)
-console.print(f'Similarity between query "{query}" and documents:', style="gold1", highlight=False)
+# query = "Artificial Intelligence"
+# query = "Vacaciones en Roma"
+query = "El Ejecutivo remodela el impuesto a la banca"
+NUMBER = 5
+results = vector_search(query, documents, doc_embeddings, top_k=NUMBER)
+console.print(f'Top {NUMBER} texts more similar to "{query}":', style="gold1", highlight=False)
 
 for r in results:
     print(f"{r['similarity']:.3f}: {r['chunk']}")
