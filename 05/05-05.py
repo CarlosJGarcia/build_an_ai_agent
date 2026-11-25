@@ -1,5 +1,26 @@
+# This code ilustrates why vector databases are necessary
+
+
+import os
 import tiktoken
+import numpy as np
+from openai import OpenAI
 from tavily import TavilyClient
+
+
+# fixed_length_chunking() Splits text into 'chunks'
+def fixed_length_chunking(text, chunk_size, overlap):
+    return
+
+# get_embeddings() Converts texts into embedding vectors using an embedding model
+def get_embeddings(texts):
+    MODEL_NAME = "qwen3-embedding:4b-f16-32k" 
+    return np.array([item.embedding for item in response.data])      # Extracts embedding vectors as a numpy array
+
+# vector_search() Using embedding and cosine similarity sorts texts for similarity to another one
+def vector_search(query, chunk_texts, chunk_embeddings, top_k):
+    return
+
 
 # Step 1: Prepare web search results
 tavily = TavilyClient()
@@ -34,3 +55,24 @@ print(f"Total chunks: {len(all_chunks)}")
 
 chunk_texts = [c['text'] for c in all_chunks]
 chunk_embeddings = get_embeddings(chunk_texts)
+
+
+# Step 4: Execute vector search
+query = "quantum computing"
+results = vector_search(query, chunk_texts, chunk_embeddings, top_k=3)
+
+print(f"Query: '{query}'\n")
+print("=" * 60)
+for i, r in enumerate(results, 1):
+    print(f"\n[{i}] Similarity: {r['similarity']:.3f}")
+    print(f"{r['chunk'][:300]}...")
+
+
+# Step 5: Measure token savings
+top_chunks = [r['chunk'] for r in results]
+selected_text = "\n\n".join(top_chunks)
+selected_tokens = len(enc.encode(selected_text))
+
+print(f"Total tokens: {total_tokens}")
+print(f"Selected tokens: {selected_tokens}")
+print(f"Savings rate: {(1 - selected_tokens/total_tokens)*100:.1f}%")
