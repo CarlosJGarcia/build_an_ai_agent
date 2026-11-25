@@ -8,6 +8,7 @@ pip install openai
 pip install datasets
 pip install tavily-python
 pip install mcp
+pip install pymupdf
 ```
 
 To check versions run `python 02/version.py`

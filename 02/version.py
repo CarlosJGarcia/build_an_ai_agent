@@ -1,7 +1,8 @@
 import openai
-import numpy as np
 import datasets
 import tiktoken
+import numpy as np
+import pandas as pd
 import sys, platform
 import importlib.metadata
 
@@ -13,6 +14,7 @@ ubuntu_version = os_info.get("PRETTY_NAME", "Linux")
 print(f"\nOS: {ubuntu_version}")
 print(f"Python: {sys.version_info.major}.{sys.version_info.minor}")
 print(f"NumPy library: {np.__version__}")
+print(f"Pandas library: {pd.__version__}")
 print(f"Tiktoken library: {tiktoken.__version__}")
 print(f"Datasets library: {datasets.__version__}")
 print(f"OpenAI API SDK: {openai.__version__}")
