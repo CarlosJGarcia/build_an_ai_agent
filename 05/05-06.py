@@ -1,4 +1,7 @@
+
+
 import shutil
+from tqdm import tqdm
 from pathlib import Path
 from rich.console import Console
 from datasets import load_dataset
@@ -19,9 +22,14 @@ WORK_DIR = PROJECT_ROOT / "data" / "interim" / "gaia_workspace"
 # 5.12 Load the GAIA dataset with attachments (as in Chapter 2)
 dataset = load_dataset(REPOSITORY, "2023_all", split="validation")
 console = Console()
-console.print(f"\nDownloading {REPOSITORY} to {CACHE_DIR}\n", style="gold1", highlight=False)
+console.print(f"\nDownloading {REPOSITORY} to {CACHE_DIR}", style="gold1", highlight=False)
 snapshot_download(repo_id=REPOSITORY, repo_type="dataset", allow_patterns="2023/validation/*", local_dir=CACHE_DIR)
 
+# Moves past the active tqdm line
+for bar in list(tqdm._instances):
+    bar.close()
+print()
+
 # Listing 5.13 Resetting the workspace function
-console.print(f"Workspace reset: {WORK_DIR}\n")
 reset_workspace()
+console.print(f"Workspace reset: {WORK_DIR}\n", style="gold1", highlight=False)
