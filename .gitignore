@@ -1,2 +1,5 @@
 # Python generated 
 __pycache__/
+
+# GAIA benchmark
+data/raw/gaia_cache
