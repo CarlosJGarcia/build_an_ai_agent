@@ -3,3 +3,4 @@ __pycache__/
 
 # GAIA benchmark
 data/raw/gaia_cache
+data/interim/gaia_cache
