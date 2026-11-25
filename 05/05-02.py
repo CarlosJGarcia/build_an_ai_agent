@@ -32,7 +32,7 @@ def get_embeddings(texts, model=MODEL_NAME):
 # Comparing embedding similarity
 sentences = ["The cat is sleeping on the couch", "A kitten is playing with a toy", "The dog is running in the park"]
 console=Console()
-console.print(f"\nEmbedding request to the model {MODEL_NAME}", style="gold1", highlight=False)
+console.print(f"\nRequest to the embedding model {MODEL_NAME}", style="gold1", highlight=False)
 embeddings = get_embeddings(sentences)
 
 # Since OpenAI and Qwen embeddings are already normalized to unit length, the dot product (@) is the cosine similarity
@@ -40,13 +40,15 @@ cat_kitten = embeddings[0] @ embeddings[1] # Calculates the cosine similarity be
 cat_dog = embeddings[0] @ embeddings[2]    # Calculates the cosine similarity between embedding vectors
 
 console.print(f"Results:", style="gold1")
-print(f"Cat vs Kitten: {cat_kitten:.3f}")  # Expected 0.3 - 0.5
-print(f"Cat vs Dog: {cat_dog:.3f}")        # Expected 0.2
+print(f"Sentences: {sentences}")
+print(f"Similarities:")
+print(f"- Cat vs Kitten: {cat_kitten:.3f}")  # Expected 0.3 - 0.5
+print(f"- Cat vs Dog: {cat_dog:.3f}")        # Expected 0.2
 
 # Check ordering (True = ranked in the expected order)
 ranked_ok = cat_kitten > cat_dog  # 0.546 > 0.297 -> True
 print(f"Are ranked correctly: {ranked_ok}")
 
-# Measure the relative gap or ratio
-print(f"Diff: {(cat_kitten - cat_dog):.3f}")  # Expected+0.249
-print(f"Ratio: {(cat_kitten / cat_dog):.3f}\n") # Expected 1.84x more similar
+# Measure the relative gap and ratio
+print(f"Gap between similarities: {(cat_kitten - cat_dog):.3f}")  # Expected+0.249
+print(f"Ratio between similarities: {(cat_kitten / cat_dog):.3f}\n") # Expected 1.84x more similar

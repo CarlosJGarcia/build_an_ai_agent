@@ -33,3 +33,19 @@ print()
 # Listing 5.13 Resetting the workspace function
 reset_workspace()
 console.print(f"Workspace reset: {WORK_DIR}\n", style="gold1", highlight=False)
+
+# 5.14 Finding problems with file attachments
+console.print(f"Finding problems with file attachments", style="gold1")
+problems_with_files = [p for p in dataset if p.get('file_name')]
+problem_with_zip = [p for p in problems_with_files if p['file_name'].endswith('.zip')]
+
+print(f"Total problems: {len(dataset)}")
+print(f"Problems with attachments: {len(problems_with_files)}")
+print(f"Total problems with zip files: {len(problem_with_zip)}")
+
+problem = problem_with_zip[0]
+print(f"Question: {problem['Question'][:100]}...")
+print(f"File name: {problem['file_name']}")
+
+file_path = WORK_DIR / problem['file_name']
+print(f"File exists: {file_path.exists()}\n")

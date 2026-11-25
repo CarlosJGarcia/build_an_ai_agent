@@ -29,7 +29,7 @@ def embed(text, model=MODEL_NAME):
 # Comparing embedding similarity
 sentence = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"
 console=Console()
-console.print(f"\nEmbedding request to the model {MODEL_NAME}", style="gold1", highlight=False)
+console.print(f"\nRequest to the embedding model {MODEL_NAME}", style="gold1", highlight=False)
 embedding = embed(sentence)
 print(f"Sentence: {sentence}")
 print(f"Embedding: {embedding}")
