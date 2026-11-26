@@ -35,7 +35,7 @@ def cosine_similarity(a, b):
 
 def vector_search(query, chunks, chunk_embeddings, top_k=3):
     """Find the most similar chunks to the query."""
-    console.print(f"\nEmbedding request to the model ({MODEL_NAME})", style="gold1", highlight=False)
+    console.print(f"\nRequest to the embedding model ({MODEL_NAME})", style="gold1", highlight=False)
     query_embedding = get_embeddings(query)
     similarities = cosine_similarity(query_embedding, chunk_embeddings)[0]
     top_indices = similarities.argsort()[::-1][:top_k]
