@@ -6,7 +6,7 @@
 | 05-02.py | Embeds three texts and compares them using cosine similarity | openai, numpy |
 | 05-03.py | Splits text into 'chunks' | n/a |
 | 05-04.py | Vector search: Using embedding, sorts 5 texts for similarity to another one | openai, numpy |
-| 05-05.py |  | openai, numpy |
+| 05-05.py | RAG intro and why vector search is needed. Compares raw web search vs web search of just 3 relevant filtered chunks | tavily, openai, numpy, tiktoken |
 
 ---
 ### Install the default Ollama Qwen 3 Embedding 4B (Q4 quantization = 4-bit integers)

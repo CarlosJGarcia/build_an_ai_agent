@@ -79,7 +79,8 @@ def vector_search(query, model_name, chunks, chunk_embeddings, top_k=3):
     return results
 
 
-MODEL_NAME = "qwen3-embedding:4b-f16-32k" 
+MODEL_NAME = "qwen3-embedding:4b-f16-32k"
+QUERY = "Quantum computing" 
 
 
 # Main
@@ -87,7 +88,7 @@ console = Console()
 
 # Step 1: Raw web search. The response will have a large number of tokens (+70.000) and is noisy as it includes HTML and encoded images.
 tavily = TavilyClient()
-response = tavily.search("2025 Nobel Prize winners", max_results=10, include_raw_content=True)
+response = tavily.search(QUERY, max_results=10, include_raw_content=True)
 
 search_results = []
 for result in response['results']:
@@ -95,7 +96,8 @@ for result in response['results']:
         search_results.append({'title': result['title'],'content': result['raw_content'], 'url': result['url']})
 
 console.print("\nStep 1: Raw web search (Tavily)", style="gold1", highlight=False)
-print(f"search_results: {search_results}\n")
+print(f"Query: '{QUERY}'\n")
+print(f"Search_results: {search_results}\n")
 
 
 # Step 2: Check token count
@@ -128,11 +130,10 @@ chunk_embeddings = get_embeddings(chunk_texts, MODEL_NAME)
 
 
 # Step 4: Execute vector search
-query = "quantum computing"
-results = vector_search(query, MODEL_NAME, chunk_texts, chunk_embeddings, top_k=3)
+results = vector_search(QUERY, MODEL_NAME, chunk_texts, chunk_embeddings, top_k=3)
 
 console.print(F"Step 4: Vector search ({MODEL_NAME})", style="gold1", highlight=False)
-print(f"Query: '{query}'\n")
+print(f"Query: '{QUERY}'\n")
 #print("=" * 60)
 print("Search results:")
 for i, r in enumerate(results, 1):
