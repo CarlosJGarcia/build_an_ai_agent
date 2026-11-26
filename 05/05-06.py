@@ -12,12 +12,19 @@ from rich.console import Console
 from datasets import load_dataset
 from huggingface_hub import snapshot_download
 
+# Point Python to the folder one level up, named '03' so from p03_05 import format_tool_definition works
+import_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../03'))
+if import_dir not in sys.path:
+    sys.path.insert(0, import_dir)
+from p03_09 import search_web
+
+
 # Point Python to the folder one level up, named '04' so from p03_05 import format_tool_definition works
 import_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../04'))
 if import_dir not in sys.path:
     sys.path.insert(0, import_dir)
-from scratch_agents.tools import tool
-from scratch_agents.agent import Agent
+from scratch_agents import tool
+from scratch_agents import Agent
 
 
 def reset_workspace():
