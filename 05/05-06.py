@@ -2,6 +2,7 @@ import os
 import sys
 import base64
 import shutil
+import logging
 import pymupdf
 import zipfile
 import pandas as pd
@@ -25,6 +26,7 @@ if import_dir not in sys.path:
     sys.path.insert(0, import_dir)
 from scratch_agents import tool
 from scratch_agents import Agent
+from scratch_agents import LlmClient
 
 
 def reset_workspace():
@@ -254,6 +256,10 @@ tools = [search_web, unzip_file, list_files, read_file, read_media_file]
 agent = Agent(model=LlmClient(model="gpt-5"), tools=tools, instructions="You are a helpful assistant that can search the web and explore files to answer questions.", max_steps=20)
 
 # 5.12 Load the GAIA dataset with attachments (as in Chapter 2)
+logging.getLogger("httpx").setLevel(logging.WARNING)              # Silence noisy HTTP request logs from httpx / huggingface_hub / datasets
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+logging.getLogger("huggingface_hub").setLevel(logging.WARNING)
+logging.getLogger("datasets").setLevel(logging.WARNING)
 dataset = load_dataset(REPOSITORY, "2023_all", split="validation")
 console = Console()
 console.print(f"\nDownloading {REPOSITORY} to {CACHE_DIR}", style="gold1", highlight=False)
