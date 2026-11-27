@@ -2,6 +2,7 @@ import os
 import sys
 import base64
 import shutil
+import asyncio
 import logging
 import pymupdf
 import zipfile
@@ -251,59 +252,71 @@ TEXT_EXTENSIONS = ['.txt', '.py', '.js', '.json', '.md', '.html',
                    '.css', '.xml', '.yaml', '.yml', '.log', '.sh']
 
 
-# Configure the toolsquestion 
-tools = [search_web, unzip_file, list_files, read_file, read_media_file]
-agent = Agent(model=LlmClient(model="gpt-5"), tools=tools, instructions="You are a helpful assistant that can search the web and explore files to answer questions.", max_steps=20)
+# Async main
+async def main():
 
-# 5.12 Load the GAIA dataset with attachments (as in Chapter 2)
-logging.getLogger("httpx").setLevel(logging.WARNING)              # Silence noisy HTTP request logs from httpx / huggingface_hub / datasets
-logging.getLogger("httpcore").setLevel(logging.WARNING)
-logging.getLogger("huggingface_hub").setLevel(logging.WARNING)
-logging.getLogger("datasets").setLevel(logging.WARNING)
-dataset = load_dataset(REPOSITORY, "2023_all", split="validation")
-console = Console()
-console.print(f"\nDownloading {REPOSITORY} to {CACHE_DIR}", style="gold1", highlight=False)
-snapshot_download(repo_id=REPOSITORY, repo_type="dataset", allow_patterns="2023/validation/*", local_dir=CACHE_DIR)
+    # Configure the toolsquestion 
+    tools = [search_web, unzip_file, list_files, read_file, read_media_file]
+    agent = Agent(model=LlmClient(model="gpt-5"), tools=tools, instructions="You are a helpful assistant that can search the web and explore files to answer questions.", max_steps=20)
 
-# Moves past the active tqdm line
-for bar in list(tqdm._instances):
-    bar.close()
-print()
+    # 5.12 Load the GAIA dataset with attachments (as in Chapter 2)
+    logging.getLogger("httpx").setLevel(logging.WARNING)              # Silence noisy HTTP request logs from httpx / huggingface_hub / datasets
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
+    logging.getLogger("huggingface_hub").setLevel(logging.WARNING)
+    logging.getLogger("datasets").setLevel(logging.WARNING)
+    dataset = load_dataset(REPOSITORY, "2023_all", split="validation")
+    console = Console()
+    console.print(f"\nDownloading {REPOSITORY} to {CACHE_DIR}", style="gold1", highlight=False)
+    snapshot_download(repo_id=REPOSITORY, repo_type="dataset", allow_patterns="2023/validation/*", local_dir=CACHE_DIR)
 
-# Listing 5.13 Reset the workspace
-reset_workspace()
-console.print(f"Workspace reset: {WORK_DIR}\n", style="gold1", highlight=False)
+    # Moves past the active tqdm line
+    for bar in list(tqdm._instances):
+        bar.close()
+    print()
 
-# 5.14 Find problems with file attachments
-console.print(f"Count total problems, how many with attachments and how many are .zip.", style="gold1")
-problems_with_files = [p for p in dataset if p.get('file_name')]
-problem_with_zip = [p for p in problems_with_files if p['file_name'].endswith('.zip')]
+    # Listing 5.13 Reset the workspace
+    reset_workspace()
+    console.print(f"Workspace reset: {WORK_DIR}\n", style="gold1", highlight=False)
 
-print(f"Total problems: {len(dataset)}")
-print(f"Problems with attachments: {len(problems_with_files)}")
-print(f"Problems with zip files: {len(problem_with_zip)}\n")
+    # 5.14 Find problems with file attachments
+    console.print(f"Count total problems, how many with attachments and how many are .zip.", style="gold1")
+    problems_with_files = [p for p in dataset if p.get('file_name')]
+    problem_with_zip = [p for p in problems_with_files if p['file_name'].endswith('.zip')]
 
-console.print(f"First problem with .zip attachment", style="gold1")
-problem = problem_with_zip[0]
-print(f"Question: {problem['Question'][:100]}...")
-print(f"File name: {problem['file_name']}")
+    print(f"Total problems: {len(dataset)}")
+    print(f"Problems with attachments: {len(problems_with_files)}")
+    print(f"Problems with zip files: {len(problem_with_zip)}\n")
 
-file_path = WORK_DIR / problem['file_name']
-print(f"File exists: {file_path.exists()}\n")
+    console.print(f"First problem with .zip attachment", style="gold1")
+    problem = problem_with_zip[0]
+    print(f"Question: {problem['Question'][:100]}...")
+    print(f"File name: {problem['file_name']}")
+
+    file_path = WORK_DIR / problem['file_name']
+    print(f"File exists: {file_path.exists()}\n")
 
 
-# Paragraph 5.4.4 Solving GAIA Zip file problems
-console.print(f"Solving the {len(problem_with_zip)} GAIA problems with Zip files attached", style="gold1", highlight=False)
-# Listing   5.22  Preparing the GAIA zip file problem
+    # Paragraph 5.4.4 Solving GAIA Zip file problems
+    console.print(f"Solving the {len(problem_with_zip)} GAIA problems with Zip files attached", style="gold1", highlight=False)
+    # Listing   5.22  Preparing the GAIA zip file problem
 
-# Select a problem with zip file attachment
-zip_problems = [p for p in problems_with_files if 
-p['file_name'].endswith('.zip')]
-problem = zip_problems[1]
+    # Select a problem with zip file attachment
+    zip_problems = [p for p in problems_with_files if 
+    p['file_name'].endswith('.zip')]
+    problem = zip_problems[1]
 
-file_path = WORK_DIR / problem['file_name']
+    file_path = WORK_DIR / problem['file_name']
 
-# Construct prompt including file location
-question = problem['Question'].strip()
-prompt = f"{question} The attached file is located at: {file_path}"
-print(f"Prompt: {prompt}\n")
+    # Construct prompt including file location
+    question = problem['Question'].strip()
+    prompt = f"{question} The attached file is located at: {file_path}"
+    print(f"Prompt: {prompt}\n")
+
+    # Listing 5.23 Running the agent on the zip file problem
+    response = await agent.run(prompt)
+    print(response)
+
+
+# Main -> Run the async main
+if __name__ == "__main__":
+    asyncio.run(main())
