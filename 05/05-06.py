@@ -287,7 +287,7 @@ async def main():
 
     # Listing 5.13 Reset the workspace
     reset_workspace()
-    console.print(f"Workspace reset: {WORK_DIR}\n", style="gold1", highlight=False)
+    console.print(f"Reset Workspace folder: {WORK_DIR}\n", style="gold1", highlight=False)
 
     # 5.14 Find problems with file attachments
     console.print(f"Count total problems, how many with attachments and how many are .zip.", style="gold1")
@@ -308,7 +308,7 @@ async def main():
 
 
     # Paragraph 5.4.4 Solving GAIA Zip file problems
-    console.print(f"Solving the {len(problem_with_zip)} GAIA problems with Zip files attached", style="gold1", highlight=False)
+    console.print(f"Solving the second problem with .zip attachment", style="gold1", highlight=False)
     # Listing   5.22  Preparing the GAIA zip file problem
 
     # Select a problem with zip file attachment
@@ -325,7 +325,9 @@ async def main():
 
     # Listing 5.23 Running the agent on the zip file problem
     response = await agent.run(prompt)
-    print(response)
+    console.print(f"\nResponse", style="gold1", highlight=False)
+    print(response.output.strip())
+    print()
 
 
 # Main -> Run the async main
