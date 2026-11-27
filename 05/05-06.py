@@ -234,11 +234,14 @@ def _analyze_pdf(file_path: str, query: str) -> str:
             "image_url": {"url": f"data:image/png;base64,{img_b64}"}
         })
 
-    client = OpenAI()
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[{"role": "user", "content": content}]
-    )
+    vllm_server_fqdn = os.getenv("VLLM_SERVER_FQDN")
+    if not vllm_server_fqdn:
+        raise ValueError("VLLM_SERVER_FQDN environment variable is not set.")
+    vllm_url = f"http://{vllm_server_fqdn}:8000/v1"
+    client = OpenAI(base_url=vllm_url, api_key="EMPTY")
+
+    #client = OpenAI()
+    response = client.chat.completions.create(model=MODEL_NAME,messages=[{"role": "user", "content": content}])
     return response.choices[0].message.content
 
 
