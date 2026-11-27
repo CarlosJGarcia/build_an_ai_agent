@@ -290,3 +290,18 @@ print(f"File name: {problem['file_name']}")
 
 file_path = WORK_DIR / problem['file_name']
 print(f"File exists: {file_path.exists()}\n")
+
+
+# Paragraph 5.4.4 Solving GAIA Zip file problems
+# Listing   5.22  Preparing the GAIA zip file problem
+
+# Select a problem with zip file attachment
+zip_problems = [p for p in problems_with_files if 
+p['file_name'].endswith('.zip')]
+problem = zip_problems[1]
+
+file_path = WORK_DIR / problem['file_name']
+
+# Construct prompt including file location
+prompt = f"{problem['Question']}The attached file is located at: {file_path}"
+print("Prompt: ", prompt)
