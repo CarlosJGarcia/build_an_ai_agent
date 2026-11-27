@@ -68,6 +68,7 @@ def unzip_file(zip_path: str, extract_to: str = None) -> str:
     return result
 
 
+@tool
 def list_files(path: str = ".") -> str:
     """List files and directories in the given path."""
     path = Path(path)
@@ -125,6 +126,7 @@ def _read_excel(file_path: str) -> str:
     return df.to_markdown(index=False)
 
 
+@tool
 def read_file(file_path: str, start_line: int = 1, end_line: int = -1) -> str:
     """Read file content. Supports txt, py, json, md, csv, xlsx."""
     path = Path(file_path)
@@ -144,6 +146,7 @@ def read_file(file_path: str, start_line: int = 1, end_line: int = -1) -> str:
         return _read_text_file(file_path, start_line, end_line)
 
 
+@tool
 def read_media_file(file_path: str, query: str) -> str:
     """Analyze an image, audio, or PDF file using LLM."""
     ext = Path(file_path).suffix.lower()
@@ -239,6 +242,7 @@ def _analyze_pdf(file_path: str, query: str) -> str:
     return response.choices[0].message.content
 
 
+MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
 NOTEBOOK_DIR = Path.cwd()
 PROJECT_ROOT = NOTEBOOK_DIR.parent
 REPOSITORY = "gaia-benchmark/GAIA"
@@ -255,15 +259,19 @@ TEXT_EXTENSIONS = ['.txt', '.py', '.js', '.json', '.md', '.html',
 # Async main
 async def main():
 
-    # Configure the toolsquestion 
-    tools = [search_web, unzip_file, list_files, read_file, read_media_file]
-    agent = Agent(model=LlmClient(model="gpt-5"), tools=tools, instructions="You are a helpful assistant that can search the web and explore files to answer questions.", max_steps=20)
-
-    # 5.12 Load the GAIA dataset with attachments (as in Chapter 2)
-    logging.getLogger("httpx").setLevel(logging.WARNING)              # Silence noisy HTTP request logs from httpx / huggingface_hub / datasets
+    # Configure the tools
+    tools = [tool(search_web), unzip_file, list_files, read_file, read_media_file]    # search_web() is not defined with @tool decorator so I do it here
+    agent = Agent(model=LlmClient(model=MODEL_NAME), tools=tools, instructions="You are a helpful assistant that can search the web and explore files to answer questions.", max_steps=20)
+    
+    # Silence noisy HTTP request logs from httpx / huggingface_hub / datasets / openai
+    logging.getLogger("httpx").setLevel(logging.WARNING)              
     logging.getLogger("httpcore").setLevel(logging.WARNING)
     logging.getLogger("huggingface_hub").setLevel(logging.WARNING)
     logging.getLogger("datasets").setLevel(logging.WARNING)
+    logging.getLogger("openai").setLevel(logging.WARNING)               
+    logging.getLogger("openai._base_client").setLevel(logging.WARNING)  
+    
+    # 5.12 Load the GAIA dataset with attachments (as in Chapter 2)
     dataset = load_dataset(REPOSITORY, "2023_all", split="validation")
     console = Console()
     console.print(f"\nDownloading {REPOSITORY} to {CACHE_DIR}", style="gold1", highlight=False)

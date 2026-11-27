@@ -128,7 +128,7 @@ class FunctionTool(BaseTool):
         if not self._tool_definition:
             self._tool_definition = self._generate_definition()
 
-        super().__init__(name=name, description=description, tool_definition=tool_definition)
+        # super().__init__(name=name, description=description, tool_definition=tool_definition)
 
 
     async def execute(self, context: ExecutionContext, **kwargs) -> Any:
