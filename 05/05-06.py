@@ -35,7 +35,7 @@ def reset_workspace():
     shutil.copytree(CACHE_DIR / "2023/validation", WORK_DIR)
 
 
-# unzip_file() tool
+# Unzip file tool unzip_file() 
 @tool
 def unzip_file(zip_path: str, extract_to: str = None) -> str:
     """Extract a zip file to the specified directory."""
@@ -251,7 +251,7 @@ TEXT_EXTENSIONS = ['.txt', '.py', '.js', '.json', '.md', '.html',
                    '.css', '.xml', '.yaml', '.yml', '.log', '.sh']
 
 
-# Configure with existing tools
+# Configure the tools
 tools = [search_web, unzip_file, list_files, read_file, read_media_file]
 agent = Agent(model=LlmClient(model="gpt-5"), tools=tools, instructions="You are a helpful assistant that can search the web and explore files to answer questions.", max_steps=20)
 
@@ -270,19 +270,20 @@ for bar in list(tqdm._instances):
     bar.close()
 print()
 
-# Listing 5.13 Resetting the workspace function
+# Listing 5.13 Reset the workspace
 reset_workspace()
 console.print(f"Workspace reset: {WORK_DIR}\n", style="gold1", highlight=False)
 
-# 5.14 Finding problems with file attachments
-console.print(f"Finding problems with file attachments", style="gold1")
+# 5.14 Find problems with file attachments
+console.print(f"Count total problems, how many with attachments and how many are .zip.", style="gold1")
 problems_with_files = [p for p in dataset if p.get('file_name')]
 problem_with_zip = [p for p in problems_with_files if p['file_name'].endswith('.zip')]
 
 print(f"Total problems: {len(dataset)}")
 print(f"Problems with attachments: {len(problems_with_files)}")
-print(f"Total problems with zip files: {len(problem_with_zip)}")
+print(f"Problems with zip files: {len(problem_with_zip)}\n")
 
+console.print(f"First problem with .zip attachment", style="gold1")
 problem = problem_with_zip[0]
 print(f"Question: {problem['Question'][:100]}...")
 print(f"File name: {problem['file_name']}")
