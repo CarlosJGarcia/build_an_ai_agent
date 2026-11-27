@@ -251,7 +251,7 @@ TEXT_EXTENSIONS = ['.txt', '.py', '.js', '.json', '.md', '.html',
                    '.css', '.xml', '.yaml', '.yml', '.log', '.sh']
 
 
-# Configure the tools
+# Configure the toolsquestion 
 tools = [search_web, unzip_file, list_files, read_file, read_media_file]
 agent = Agent(model=LlmClient(model="gpt-5"), tools=tools, instructions="You are a helpful assistant that can search the web and explore files to answer questions.", max_steps=20)
 
@@ -293,6 +293,7 @@ print(f"File exists: {file_path.exists()}\n")
 
 
 # Paragraph 5.4.4 Solving GAIA Zip file problems
+console.print(f"Solving the {len(problem_with_zip)} GAIA problems with Zip files attached", style="gold1", highlight=False)
 # Listing   5.22  Preparing the GAIA zip file problem
 
 # Select a problem with zip file attachment
@@ -303,5 +304,6 @@ problem = zip_problems[1]
 file_path = WORK_DIR / problem['file_name']
 
 # Construct prompt including file location
-prompt = f"{problem['Question']}The attached file is located at: {file_path}"
-print("Prompt: ", prompt)
+question = problem['Question'].strip()
+prompt = f"{question} The attached file is located at: {file_path}"
+print(f"Prompt: {prompt}\n")
