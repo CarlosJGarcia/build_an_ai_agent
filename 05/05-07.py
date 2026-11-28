@@ -3,6 +3,7 @@
 import os
 import sys
 import inspect
+import asyncio
 from pydantic import BaseModel
 from typing import List, Optional, Type, Callable
 
@@ -14,11 +15,18 @@ if import_dir not in sys.path:
     sys.path.insert(0, import_dir)
 
 from scratch_agents import tool
+from scratch_agents import Event
+from scratch_agents import Message
 from scratch_agents import BaseTool
 from scratch_agents import ToolCall
 from scratch_agents import LlmClient
+from scratch_agents import LlmRequest
 from scratch_agents import ToolResult
+from scratch_agents import AgentResult
+from scratch_agents import LlmResponse
 from scratch_agents import ExecutionContext
+
+
 
 # Instead of using "from scratch_agents import Agent", I define a new version with callback parameters
 class Agent:
@@ -28,9 +36,9 @@ class Agent:
         self,
         model: LlmClient,
         tools: List[BaseTool] = None,
-        instructions: str = "",
+        instructions: str = '',
         max_steps: int = 10,
-        name: str = "agent",
+        name: str = 'agent',
         output_type: Optional[Type[BaseModel]] = None,
         before_tool_callbacks: List[Callable] = None,
         after_tool_callbacks: List[Callable] = None,
@@ -42,8 +50,6 @@ class Agent:
         self.output_type = output_type
         self.output_tool_name = None
         self.tools = self._setup_tools(tools or [])
-
-        # Initialize callback lists
         self.before_tool_callbacks = before_tool_callbacks or []
         self.after_tool_callbacks = after_tool_callbacks or []
 
@@ -81,7 +87,161 @@ class Agent:
 
         return tools
 
+    async def run(self, user_input: str, context: ExecutionContext = None) -> AgentResult:
+        """Entry point for agent execution."""
+        if context is None:
+            context = ExecutionContext()
 
+        user_event = Event(
+            execution_id=context.execution_id,
+            author='user',
+            content=[Message(role='user', content=user_input)]
+        )
+        context.add_event(user_event)
+
+        while not context.final_result and context.current_step < self.max_steps:
+            await self.step(context)
+            last_event = context.events[-1]
+            if self._is_final_response(last_event):
+                context.final_result = self._extract_final_result(last_event)
+
+        return AgentResult(output=context.final_result, context=context)
+
+    def _is_final_response(self, event: Event) -> bool:
+        """Check if this event contains a final response."""
+        if self.output_tool_name:
+            for item in event.content:
+                if (isinstance(item, ToolResult)
+                    and item.name == self.output_tool_name
+                    and item.status == 'success'):
+                    return True
+            return False
+
+        has_tool_calls = any(isinstance(c, ToolCall) for c in event.content)
+        has_tool_results = any(isinstance(c, ToolResult) for c in event.content)
+        return not has_tool_calls and not has_tool_results
+
+    def _extract_final_result(self, event: Event) -> str | BaseModel:
+        if self.output_tool_name:
+            for item in event.content:
+                if (isinstance(item, ToolResult)
+                    and item.name == self.output_tool_name
+                    and item.status == 'success'
+                    and item.content):
+                    return item.content[0]
+
+        for item in event.content:
+            if isinstance(item, Message) and item.role == 'assistant':
+                return item.content
+        return None
+
+    async def step(self, context: ExecutionContext):
+        """Perform one complete think-act cycle."""
+        llm_request = self._prepare_llm_request(context)
+        llm_response = await self.think(llm_request)
+
+        response_event = Event(
+            execution_id=context.execution_id,
+            author=self.name,
+            content=llm_response.content,
+        )
+        context.add_event(response_event)
+
+        tool_calls = [c for c in llm_response.content if isinstance(c, ToolCall)]
+        if tool_calls:
+            tool_results = await self.act(context, tool_calls)
+            tool_event = Event(
+                execution_id=context.execution_id,
+                author=self.name,
+                content=tool_results,
+            )
+            context.add_event(tool_event)
+
+        context.increment_step()
+
+    def _prepare_llm_request(self, context: ExecutionContext) -> LlmRequest:
+        """Flatten events into content items and package for the LLM."""
+        flat_contents = []
+        for event in context.events:
+            flat_contents.extend(event.content)
+
+        if self.tools:
+            tool_choice = 'auto'
+        else:
+            tool_choice = None
+
+        return LlmRequest(
+            instructions=[self.instructions] if self.instructions else [],
+            contents=flat_contents,
+            tools=self.tools,
+            tool_choice=tool_choice,
+        )
+
+    async def think(self, llm_request: LlmRequest) -> LlmResponse:
+        """Call the LLM to analyze the situation and decide the next action."""
+        return await self.model.generate(llm_request)
+
+    async def act(
+        self,
+        context: ExecutionContext,
+        tool_calls: List[ToolCall]
+    ) -> List[ToolResult]:
+        """Execute the tools that the LLM requested, running before/after callbacks."""
+        tools_dict = {tool.name: tool for tool in self.tools}
+        results = []
+
+        for tool_call in tool_calls:
+            if tool_call.name not in tools_dict:
+                results.append(ToolResult(
+                    tool_call_id=tool_call.tool_call_id,
+                    name=tool_call.name,
+                    status='error',
+                    content=[f"Tool '{tool_call.name}' not found"],
+                ))
+                continue
+
+            tool = tools_dict[tool_call.name]
+            tool_response = None
+            status = 'success'
+
+            # Stage 1: Execute before_tool_callbacks
+            for callback in self.before_tool_callbacks:
+                result = callback(context, tool_call)
+                if inspect.isawaitable(result):
+                    result = await result
+                if result is not None:
+                    tool_response = result
+                    break
+
+            # Stage 2: Execute actual tool only if callback didn't provide a result
+            if tool_response is None:
+                try:
+                    tool_response = await tool(context, **tool_call.arguments)
+                except Exception as e:
+                    tool_response = str(e)
+                    status = 'error'
+
+            tool_result = ToolResult(
+                tool_call_id=tool_call.tool_call_id,
+                name=tool_call.name,
+                status=status,
+                content=[tool_response],
+            )
+
+            # Stage 3: Execute after_tool_callbacks
+            for callback in self.after_tool_callbacks:
+                result = callback(context, tool_result)
+                if inspect.isawaitable(result):
+                    result = await result
+                if result is not None:
+                    tool_result = result
+                    break
+
+            results.append(tool_result)
+
+        return results
+
+"""
 async def act(self, context: ExecutionContext, tool_calls: List[ToolCall]):
     tools_dict = {tool.name: tool for tool in self.tools}
     results = []
@@ -126,7 +286,7 @@ async def act(self, context: ExecutionContext, tool_calls: List[ToolCall]):
         results.append(tool_result)
 
     return results
-
+"""
 
 # Listing 5.26 Implementing the delete_file tool
 @tool
@@ -171,5 +331,11 @@ agent = Agent(
     before_tool_callbacks=[approval_callback],
 )
 
+# Async main
+async def main():
+    print ("\nTodo bien\n") 
 
-print ("\nTodo bien\n")
+
+# Main -> Run the async main
+if __name__ == "__main__":
+    asyncio.run(main())
