@@ -7,6 +7,9 @@
 | 05-03.py | Splits text into 'chunks' | n/a |
 | 05-04.py | Vector search: Using embedding, sorts 5 texts for similarity to another one | openai, numpy |
 | 05-05.py | RAG intro and why vector search is needed. Compares raw web search vs web search of just 3 relevant filtered chunks | tavily, openai, numpy, tiktoken |
+| 05-06.py | Agent with filesystem exploration tools that solves a GAIA dataset question including  a .zip attachment | datasets, openai, |
+
+
 
 ---
 ### Install the default Ollama Qwen 3 Embedding 4B (Q4 quantization = 4-bit integers)

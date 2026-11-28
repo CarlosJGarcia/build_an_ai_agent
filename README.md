@@ -9,6 +9,7 @@ pip install datasets
 pip install tavily-python
 pip install mcp
 pip install pymupdf
+pip install openpyxl tabulate
 ```
 
 To check versions run `python 02/version.py`

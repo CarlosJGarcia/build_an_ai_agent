@@ -1,3 +1,5 @@
+# Agent with filesystem exploration tools that solves a GAIA dataset question including  a .zip attachment 
+
 import os
 import sys
 import base64
