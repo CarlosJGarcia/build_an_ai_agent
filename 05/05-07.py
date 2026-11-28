@@ -31,7 +31,6 @@ from scratch_agents import LlmResponse
 from scratch_agents import ExecutionContext
 
 
-
 # Instead of using "from scratch_agents import Agent", I define a new version with callback parameters
 class Agent:
     """ReAct agent that reasons and acts using tools."""
@@ -245,52 +244,6 @@ class Agent:
 
         return results
 
-"""
-async def act(self, context: ExecutionContext, tool_calls: List[ToolCall]):
-    tools_dict = {tool.name: tool for tool in self.tools}
-    results = []
-
-    for tool_call in tool_calls:
-        if tool_call.name not in tools_dict:
-            results.append(ToolResult(tool_call_id=tool_call.tool_call_id, name=tool_call.name, status="error", content=[f"Tool '{tool_call.name}' not found"]))
-            continue
-
-        tool = tools_dict[tool_call.name]
-        tool_response = None
-        status = "success"
-
-        # Stage 1: Execute before_tool_callbacks
-        for callback in self.before_tool_callbacks:
-            result = callback(context, tool_call)
-            if inspect.isawaitable(result):
-                result = await result
-            if result is not None:
-                tool_response = result
-                break
-
-        # Stage 2: Execute actual tool only if callback didn't provide a result
-        if tool_response is None:
-            try:
-                tool_response = await tool(context, **tool_call.arguments)
-            except Exception as e:
-                tool_response = str(e)
-                status = "error"
-
-        tool_result = ToolResult(tool_call_id=tool_call.tool_call_id, name=tool_call.name, status=status, content=[tool_response])
-
-        # Stage 3: Execute after_tool_callbacks
-        for callback in self.after_tool_callbacks:
-            result = callback(context, tool_result)
-            if inspect.isawaitable(result):
-                result = await result
-            if result is not None:
-                tool_result = result
-                break
-
-        results.append(tool_result)
-
-    return results
-"""
 
 # Listing 5.26 Implementing the delete_file tool
 @tool
@@ -326,20 +279,20 @@ MODEL_NAME = "nvidia/Qwen3.6-35B-A3B-NVFP4"
 DANGEROUS_TOOLS = ["delete_file", "send_email", "execute_sql"]       # List of 'dangerous' tools requiring approval
 
 
-# Listing 5.28 Creating an agent with approval callback
-agent = Agent(
-    model=LlmClient(model=MODEL_NAME),
-    tools=[list_files, read_file, delete_file],
-    instructions="You are a helpful assistant that can explore and manage files.",
-    max_steps=20,
-    before_tool_callbacks=[approval_callback],
-)
-
-
 # Async main
 async def main():
     console = Console()
     console.print ("\nAgent with callback for user approval", style="gold1", highlight=False) 
+
+    # Listing 5.28 Creating an agent with approval callback
+    agent = Agent(
+        model=LlmClient(model=MODEL_NAME),
+        tools=[list_files, read_file, delete_file],
+        instructions="You are a helpful assistant that can explore and manage files.",
+        max_steps=20,
+        before_tool_callbacks=[approval_callback],
+    )
+
     with tempfile.TemporaryDirectory() as tmp_dir:
         (Path(tmp_dir) / "keep.txt").write_text("Keep me")
         (Path(tmp_dir) / "remove.log").write_text("Delete me")
