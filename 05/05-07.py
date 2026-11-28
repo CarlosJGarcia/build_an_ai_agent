@@ -22,12 +22,15 @@ from scratch_agents import ExecutionContext
 
 # Instead of using "from scratch_agents import Agent", I define a new version with callback parameters
 class Agent:
+    """ReAct agent that reasons and acts using tools."""
+
     def __init__(
         self,
         model: LlmClient,
         tools: List[BaseTool] = None,
         instructions: str = "",
         max_steps: int = 10,
+        name: str = "agent",
         output_type: Optional[Type[BaseModel]] = None,
         before_tool_callbacks: List[Callable] = None,
         after_tool_callbacks: List[Callable] = None,
@@ -35,6 +38,7 @@ class Agent:
         self.model = model
         self.instructions = instructions
         self.max_steps = max_steps
+        self.name = name
         self.output_type = output_type
         self.output_tool_name = None
         self.tools = self._setup_tools(tools or [])
@@ -42,6 +46,40 @@ class Agent:
         # Initialize callback lists
         self.before_tool_callbacks = before_tool_callbacks or []
         self.after_tool_callbacks = after_tool_callbacks or []
+
+    def _setup_tools(self, tools: List[BaseTool]):
+        """Prepare tools and optionally create a dynamic final_answer tool."""
+        if self.output_type is not None:
+
+            # 1. Map the parameters EXACTLY to the Pydantic schema (no nesting)
+            raw_schema = self.output_type.model_json_schema()
+            raw_schema.pop("title", None)  # vLLM often crashes if it sees 'title'
+            raw_schema.pop("description", None)
+
+            schema_def = {
+                'type': 'function',
+                'function': {
+                    'name': 'final_answer',
+                    'description': 'Return the final structured answer matching the required schema.',
+                    'parameters': raw_schema
+                }
+            }
+
+            # 2. Use **kwargs so the function accepts the flat dictionary fields
+            @tool(
+                name='final_answer',
+                description='Return the final structured answer matching the required schema.',
+                tool_definition=schema_def
+            )
+            def final_answer(**kwargs):
+                # 3. Pass the fields directly into the Pydantic model
+                return self.output_type(**kwargs)
+
+            tools = list(tools)
+            tools.append(final_answer)
+            self.output_tool_name = 'final_answer'
+
+        return tools
 
 
 async def act(self, context: ExecutionContext, tool_calls: List[ToolCall]):
