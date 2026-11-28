@@ -4,8 +4,12 @@ import os
 import sys
 import inspect
 import asyncio
+import tempfile
+from pathlib import Path
 from pydantic import BaseModel
+from rich.console import Console
 from typing import List, Optional, Type, Callable
+
 
 from p05_06 import list_files, read_file
 
@@ -331,9 +335,23 @@ agent = Agent(
     before_tool_callbacks=[approval_callback],
 )
 
+
 # Async main
 async def main():
-    print ("\nTodo bien\n") 
+    console = Console()
+    console.print ("\nAgent with callback for user approval", style="gold1", highlight=False) 
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        (Path(tmp_dir) / "keep.txt").write_text("Keep me")
+        (Path(tmp_dir) / "remove.log").write_text("Delete me")
+
+        prompt = (f"List the files in '{tmp_dir}' and then delete the '.log' file you find there.")
+        print(f"Prompt: {prompt}\n")
+
+        response = await agent.run(prompt)
+
+        print("\nFinal Response:")
+        print(response.output.strip())
+        print()
 
 
 # Main -> Run the async main
